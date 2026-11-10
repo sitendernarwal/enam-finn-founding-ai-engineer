@@ -1,12 +1,12 @@
-# Deployment checklist
+# Deployment
 
-The prototype is static and needs no build step, build command, environment variables, or secrets. Each assignment folder is independently deployable. The included `netlify.toml`, `vercel.json`, and `.nojekyll` provide basic static-host settings and response headers.
+The prototype is static and needs no build step, build command, environment variables, or secrets. It is published with GitHub Pages from the `main` branch and root folder.
 
-1. Put the contents of this folder at the root of its own GitHub repository, or select this folder as the project root in your static host.
-2. Deploy with Netlify (publish directory `.`), Vercel (static project root `.`), or GitHub Pages (branch `main`, root folder). There is no build command.
-3. Locally, preview with `python3 -m http.server 8000` from this folder and open `http://localhost:8000`.
-4. After deployment, open the public URL on desktop and a phone-sized viewport. Confirm Daily brief, Research, Network, ticker search, alert thresholds, and privacy dialogs work.
-5. Add the published URL and repository URL to `COVERING_NOTE.md` and `SUBMISSION_CHECKLIST.md`.
-6. Export/share the Codex build conversation and add that link to the covering note.
+**Live demo:** https://sitendernarwal.github.io/enam-finn-founding-ai-engineer/  
+**Repository:** https://github.com/sitendernarwal/enam-finn-founding-ai-engineer
 
-Do not publish the files until you are comfortable making the prototype and its sample data public. The current values and stories are marked illustrative and the profile data is synthetic.
+The live site was opened and checked in a desktop browser. GitHub Pages automatically rebuilds from `main`; deployment runs are available under the repository’s Actions tab. For a local preview, run `python3 -m http.server 8000` from this folder and open `http://localhost:8000`.
+
+Before final submission, also check the layout at a phone-sized viewport and confirm Daily brief, Research, Network, ticker search, alert thresholds, and privacy dialogs work. The included `netlify.toml` and `vercel.json` remain available for alternative static hosts. All public files and sample data are visible; values and stories are illustrative, and Network profiles are synthetic.
+
+Export or share the full Codex build conversation and add that link to `COVERING_NOTE.md` if the reviewer requires the complete session history.
