@@ -86,3 +86,126 @@ body{
   .nav-item,.feed-card,.person-card,.primary-btn,.icon-btn,.quiet-btn,.filter,.company-chip{transition:none}
   .feed-card:hover,.person-card:hover,.primary-btn:hover{transform:none}
 }
+
+/* Liquid Glass refresh: stronger ambient color, optical edges, floating controls */
+:root{
+  --glass-fill:rgba(250,252,255,.48);
+  --glass-fill-strong:rgba(248,251,255,.64);
+  --glass-rim:rgba(255,255,255,.94);
+  --glass-shadow:0 22px 58px rgba(33,52,65,.17),0 4px 14px rgba(33,52,65,.08),inset 0 1px 0 rgba(255,255,255,.96),inset 0 -1px 0 rgba(255,255,255,.42);
+}
+html{background:#e9eef2}
+body{
+  background-color:#e9eef2;
+  background-image:radial-gradient(ellipse 68% 58% at 7% 4%,rgba(170,207,184,.72),transparent 72%),radial-gradient(ellipse 58% 54% at 92% 24%,rgba(190,211,238,.72),transparent 74%),radial-gradient(ellipse 68% 55% at 68% 96%,rgba(215,207,233,.50),transparent 72%),linear-gradient(135deg,#eef2eb 0%,#edf1f5 52%,#f0eef4 100%);
+  background-attachment:fixed;
+}
+.shell{position:relative;isolation:isolate}
+@media (min-width:701px){
+  .sidebar{
+    background:linear-gradient(155deg,rgba(255,255,255,.78) 0%,rgba(244,250,249,.55) 42%,rgba(225,238,246,.50) 100%);
+    border:1px solid var(--glass-rim);
+    -webkit-backdrop-filter:blur(38px) saturate(190%);
+    backdrop-filter:blur(38px) saturate(190%);
+    box-shadow:var(--glass-shadow),inset 1px 0 0 rgba(255,255,255,.58);
+  }
+}
+.topbar{
+  background:linear-gradient(112deg,rgba(255,255,255,.72),rgba(233,243,249,.48) 46%,rgba(243,236,249,.55));
+  border:1px solid var(--glass-rim);
+  -webkit-backdrop-filter:blur(34px) saturate(195%);
+  backdrop-filter:blur(34px) saturate(195%);
+  box-shadow:0 16px 38px rgba(35,56,69,.13),inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(255,255,255,.48);
+}
+.nav{gap:7px}
+.nav-item{height:46px;border:1px solid transparent;border-radius:16px;transition:transform .2s ease,background .2s ease,box-shadow .2s ease}
+.nav-item:hover{background:rgba(255,255,255,.56);border-color:rgba(255,255,255,.84);box-shadow:0 7px 18px rgba(31,61,76,.09),inset 0 1px 0 #fff}
+.nav-item.active{
+  background:linear-gradient(142deg,rgba(255,255,255,.94),rgba(222,241,229,.76) 58%,rgba(222,235,244,.72));
+  border-color:rgba(255,255,255,.98);
+  box-shadow:0 9px 24px rgba(36,81,62,.14),inset 0 1px 0 #fff,inset 0 -1px 0 rgba(255,255,255,.62);
+}
+.nav-item:active{transform:scale(.975)}
+.portfolio-mini{
+  background:linear-gradient(145deg,rgba(255,255,255,.60),rgba(228,239,234,.52));
+  border-color:rgba(255,255,255,.84);
+  -webkit-backdrop-filter:blur(20px) saturate(165%);
+  backdrop-filter:blur(20px) saturate(165%);
+  box-shadow:0 10px 28px rgba(35,56,69,.09),inset 0 1px 0 rgba(255,255,255,.9);
+}
+.user-row.profile-trigger{border-radius:17px}
+.user-row.profile-trigger:hover{background:rgba(255,255,255,.58);box-shadow:inset 0 1px 0 rgba(255,255,255,.9)}
+.topbar .demo-pill,.top-avatar{
+  background:linear-gradient(145deg,rgba(255,255,255,.78),rgba(225,237,243,.57));
+  border:1px solid rgba(255,255,255,.92);
+  box-shadow:0 5px 16px rgba(35,56,69,.09),inset 0 1px 0 #fff;
+}
+.top-avatar{display:grid;place-items:center}
+.market-strip,.search-box{
+  background:linear-gradient(120deg,rgba(255,255,255,.76),rgba(239,247,249,.66),rgba(246,241,249,.70));
+  border:1px solid rgba(255,255,255,.9);
+  -webkit-backdrop-filter:blur(24px) saturate(175%);
+  backdrop-filter:blur(24px) saturate(175%);
+  box-shadow:0 12px 32px rgba(35,56,69,.09),inset 0 1px 0 #fff,inset 0 -1px 0 rgba(255,255,255,.52);
+}
+.market-strip{border-radius:21px}
+.search-box{border-radius:17px}
+.filter-row{
+  gap:5px;padding:4px;border-radius:15px;
+  background:rgba(211,222,224,.56);
+  border:1px solid rgba(255,255,255,.78);
+  box-shadow:inset 0 1px 2px rgba(40,63,67,.08),inset 0 1px 0 rgba(255,255,255,.8);
+  -webkit-backdrop-filter:blur(18px) saturate(165%);
+  backdrop-filter:blur(18px) saturate(165%);
+}
+.filter{border-radius:12px;padding:7px 11px}
+.filter.active{
+  background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(233,243,247,.82));
+  box-shadow:0 4px 12px rgba(43,65,74,.12),inset 0 1px 0 #fff;
+}
+.feed-card,.panel,.person-card,.research-main,.research-side{
+  border-color:rgba(218,228,223,.92);
+  border-radius:20px;
+  box-shadow:0 9px 24px rgba(32,54,43,.065),inset 0 1px 0 rgba(255,255,255,.98);
+}
+.feed-card{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+.feed-card:hover,.person-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(169,198,181,.98);
+  box-shadow:0 18px 36px rgba(32,54,43,.13),inset 0 1px 0 #fff;
+}
+.page-heading h1{letter-spacing:-1.35px}
+.primary-btn{
+  border:1px solid rgba(255,255,255,.94);
+  border-radius:15px;
+  box-shadow:0 8px 20px rgba(20,61,40,.16),inset 0 1px 0 #fff;
+}
+:where(button,a,input,select):focus-visible{outline:3px solid rgba(62,125,158,.66);outline-offset:3px}
+@media (max-width:700px){
+  body{background-attachment:scroll}
+  .sidebar{
+    background:linear-gradient(112deg,rgba(255,255,255,.80),rgba(228,240,244,.70) 54%,rgba(240,230,248,.74));
+    border:1px solid rgba(255,255,255,.98);
+    box-shadow:0 18px 42px rgba(33,52,65,.23),0 3px 10px rgba(33,52,65,.11),inset 0 1px 0 #fff,inset 0 -1px 0 rgba(255,255,255,.7);
+    -webkit-backdrop-filter:blur(34px) saturate(200%);
+    backdrop-filter:blur(34px) saturate(200%);
+  }
+  .topbar{
+    background:linear-gradient(112deg,rgba(255,255,255,.78),rgba(231,242,247,.63),rgba(240,233,247,.70));
+    -webkit-backdrop-filter:blur(30px) saturate(190%);
+    backdrop-filter:blur(30px) saturate(190%);
+  }
+  .nav-item.active{box-shadow:0 6px 17px rgba(35,69,79,.16),inset 0 1px 0 #fff}
+  .market-strip{border-radius:18px}
+  .feed-card,.panel,.person-card{border-radius:18px}
+}
+@media (prefers-reduced-transparency:reduce){
+  .sidebar,.topbar,.portfolio-mini,.market-strip,.search-box,.filter-row{
+    background:#f4f7f4;-webkit-backdrop-filter:none;backdrop-filter:none;
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  .nav-item,.feed-card,.person-card{transition:none}
+  .nav-item:active{transform:none}
+}
+
