@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#f6f7f4"><meta name="description" content="FINN — an investor's daily intelligence brief">
-  <title>FINN — Investor intelligence</title><link rel="stylesheet" href="styles.css?v=liquid-glass-20261110-v2">
+  <title>FINN — Investor intelligence</title><link rel="stylesheet" href="styles.css?v=liquid-glass-20261110-v3">
 </head>
 <body>
   <div class="shell">
@@ -23,15 +23,16 @@
         <section class="view active" id="view-home">
           <div class="page-heading"><div><div class="eyebrow">TUESDAY, 10 NOVEMBER 2026 <span class="live-dot"></span></div><h1>Your daily brief</h1><p class="subhead">The few things worth your attention today.</p></div><button class="quiet-btn" id="refresh-btn">↻ <span>Refresh brief</span></button></div>
           <div class="market-strip"><div><span class="market-label">NIFTY 50</span><b>25,842.30</b><span class="up">+0.42%</span></div><div><span class="market-label">SENSEX</span><b>84,112.65</b><span class="up">+0.38%</span></div><div><span class="market-label">WATCHLIST</span><b>16 companies</b><span class="market-note">Updated 08:30 IST</span></div><div class="strip-note">Market close · 9 Nov <span>◷</span></div></div>
-          <div class="section-head"><div><h2>Needs your attention <span class="tiny-count" id="feed-count">4</span></h2><p>Ranked by potential relevance to your portfolio</p></div><div class="filter-row"><button class="filter active" data-filter="all" aria-pressed="true">All <span class="filter-count">4</span></button><button class="filter" data-filter="filing" aria-pressed="false">Filings <span class="filter-count">3</span></button><button class="filter" data-filter="movement" aria-pressed="false">Market moves <span class="filter-count">1</span></button></div></div>
+          <div class="section-head"><div><h2>Needs your attention <span class="tiny-count" id="feed-count">4</span></h2><p>Sample relevance order · reasons shown on each item</p></div><div class="filter-row"><button class="filter active" data-filter="all" aria-pressed="true">All <span class="filter-count">4</span></button><button class="filter" data-filter="filing" aria-pressed="false">Filings <span class="filter-count">3</span></button><button class="filter" data-filter="movement" aria-pressed="false">Market moves <span class="filter-count">1</span></button></div></div>
           <div class="feed" id="feed" aria-label="Portfolio alerts" aria-live="polite"></div>
-          <div class="below-grid"><div class="panel compact-panel"><div class="panel-heading"><div><div class="eyebrow">WATCHLIST PULSE</div><h3>Quiet where it should be</h3></div><span class="green-badge">No unusual moves</span></div><p class="muted">No other holdings crossed your alert thresholds. Your volume alert is set to <b id="volume-threshold-label">2×</b> the 20-day average.</p><button class="text-btn" id="threshold-link">Edit alert settings <span>↗</span></button></div><div class="panel compact-panel network-teaser"><div class="panel-heading"><div><div class="eyebrow">YOUR NETWORK</div><h3>Context from people you know</h3></div><span class="teaser-icon">◎</span></div><p class="muted">A familiar name may help put today’s management change at HDFC Bank in context.</p><button class="text-btn" data-open-network>See the connection <span>→</span></button></div></div>
+          <div class="below-grid"><div class="panel compact-panel"><div class="panel-heading"><div><div class="eyebrow">SAMPLE ACTIVITY RULES</div><h3>Illustrative monitoring</h3></div><span class="green-badge" id="sample-activity-status">Demo event matches</span></div><p class="muted" id="sample-activity-copy">L&amp;T sample: 2.4× volume and +1.1% price move. Either rule can match; live monitoring is not connected. Current limits: <b id="volume-threshold-label">2×</b> volume and <b id="price-threshold-label">3%</b> price.</p><button class="text-btn" id="threshold-link">Edit demo thresholds <span>↗</span></button></div><div class="panel compact-panel network-teaser"><div class="panel-heading"><div><div class="eyebrow">YOUR NETWORK</div><h3>Context from people you know</h3></div><span class="teaser-icon">◎</span></div><p class="muted">Carry a researched company into matching synthetic profiles and draft a private question.</p><button class="text-btn" data-open-network>Explore sample connections <span>→</span></button></div></div>
           <footer class="disclaimer">FINN prototype · All prices, financial figures, and sample events are illustrative; this is not investment advice.</footer>
         </section>
         <section class="view" id="view-research">
-          <div class="page-heading"><div><div class="eyebrow">PULL · COMPANY INTELLIGENCE</div><h1>Research a company</h1><p class="subhead">A grounded view, built from company disclosures.</p></div><div class="source-note">Primary sources first <span>↗</span></div></div>
+          <div class="page-heading"><div><div class="eyebrow">PULL · COMPANY INTELLIGENCE</div><h1>Research a company</h1><p class="subhead">Transparent sample figures, with source discovery links.</p></div><div class="source-note">Primary sources first <span>↗</span></div></div>
           <div class="search-box"><span>⌕</span><input id="company-search" type="search" placeholder="Search companies or enter any NSE ticker…" aria-label="Search companies"><kbd>⌘ K</kbd></div>
           <div class="company-chips" id="company-chips"></div>
+          <div class="saved-research" id="saved-research" hidden></div>
           <p class="search-helper">16 portfolio companies · 5 outside-portfolio examples · press Enter for any NSE ticker</p>
           <div id="research-card"></div>
           <footer class="disclaimer">Sample research content and illustrative figures. Links open source discovery pages, not the specific documents shown; verify before relying on anything.</footer>
@@ -48,6 +49,7 @@
     </main>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div><div class="modal-backdrop" id="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" id="modal-close" aria-label="Close">×</button><div class="eyebrow" id="modal-eyebrow">FINN</div><h2 id="modal-title"></h2><div id="modal-body"></div></div></div>
-  <script src="app.js?v=profile-sitender-20261110"></script>
+  <script src="app.js?v=flow-audit-20261110"></script>
+  <script src="analysis.js?v=flow-audit-20261110"></script>
 </body>
 </html>
