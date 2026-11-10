@@ -6,3 +6,8 @@
 
 .tag.demo-event{background:#f0f1ee;color:#737d75}.company-chip.ad-hoc{border-style:dashed}.company-chip.ad-hoc::after{content:" · RESEARCH";font-size:8px;color:#8f9a92}
 .search-helper{font-size:10px;color:#929c95;margin:-13px 0 17px 2px}.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}.table-scroll .trend{min-width:430px}
+.user-row.profile-trigger{width:100%;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background .18s ease}
+.user-row.profile-trigger:hover{background:#f5f7f4}
+.user-row.profile-trigger:focus-visible,.top-avatar:focus-visible{outline:3px solid #8ab89a;outline-offset:3px}
+.profile-copy{min-width:0}
+.top-avatar{border:0;padding:0;line-height:1;cursor:pointer;appearance:none;-webkit-appearance:none}
