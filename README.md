@@ -2,6 +2,9 @@
 
 A responsive, mobile-first prototype for an investor's daily workflow: a prioritized Push brief, Pull company research, and a private Network layer woven into both.
 
+**Live demo:** https://sitendernarwal.github.io/enam-finn-founding-ai-engineer/  
+**Public repository:** https://github.com/sitendernarwal/enam-finn-founding-ai-engineer
+
 ## Run locally
 
 Open `index.html` in a browser, or serve this folder with `python3 -m http.server 8000` and visit `http://localhost:8000`.
