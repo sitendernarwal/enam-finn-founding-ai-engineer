@@ -9,6 +9,8 @@ This is a truthful summary of the Codex-assisted work in this workspace, not an 
 - Added architecture notes covering source ingestion, model boundaries, cloud shape, and network privacy controls.
 - Audited the implementation against the assignment and added five research-only companies, arbitrary NSE ticker source lookup, clearer sample-data labels, and submission readiness notes.
 - Ran JavaScript syntax checks with `node --check` on the prototype script.
+- Published the static prototype to GitHub Pages and opened the live page in a desktop browser: https://sitendernarwal.github.io/enam-finn-founding-ai-engineer/.
+- Created the public source repository: https://github.com/sitendernarwal/enam-finn-founding-ai-engineer.
 
 ## AI use and review approach
 
