@@ -11,3 +11,78 @@
 .user-row.profile-trigger:focus-visible,.top-avatar:focus-visible{outline:3px solid #8ab89a;outline-offset:3px}
 .profile-copy{min-width:0}
 .top-avatar{border:0;padding:0;line-height:1;cursor:pointer;appearance:none;-webkit-appearance:none}
+
+/* macOS 26 Liquid Glass-inspired navigation surfaces */
+:root{
+  --glass-tint:rgba(244,248,244,.74);
+  --glass-edge:rgba(255,255,255,.82);
+  --glass-shadow:0 18px 44px rgba(31,55,39,.12),inset 0 1px 0 rgba(255,255,255,.92);
+}
+body{
+  background-color:#f2f5f0;
+  background-image:radial-gradient(ellipse at 18% 4%,rgba(194,220,201,.34),transparent 32%),radial-gradient(ellipse at 94% 68%,rgba(222,222,198,.24),transparent 29%);
+  background-attachment:fixed;
+}
+@media (min-width:1001px){
+  .sidebar{inset:12px auto 12px 12px;width:220px;padding:25px 14px 14px;border:1px solid var(--glass-edge);border-radius:26px;background:linear-gradient(145deg,rgba(255,255,255,.78),var(--glass-tint));-webkit-backdrop-filter:blur(28px) saturate(165%);backdrop-filter:blur(28px) saturate(165%);box-shadow:var(--glass-shadow)}
+  .main{margin-left:244px}
+}
+@media (min-width:701px) and (max-width:1000px){
+  .sidebar{inset:12px auto 12px 12px;width:182px;padding:24px 12px 14px;border:1px solid var(--glass-edge);border-radius:24px;background:linear-gradient(145deg,rgba(255,255,255,.8),var(--glass-tint));-webkit-backdrop-filter:blur(26px) saturate(160%);backdrop-filter:blur(26px) saturate(160%);box-shadow:var(--glass-shadow)}
+  .main{margin-left:206px}
+}
+.topbar{
+  top:12px;height:58px;margin:12px 18px 0;padding:0 24px;border:1px solid rgba(255,255,255,.84);border-radius:20px;
+  background:linear-gradient(115deg,rgba(255,255,255,.76),rgba(246,250,246,.64));-webkit-backdrop-filter:blur(24px) saturate(170%);backdrop-filter:blur(24px) saturate(170%);
+  box-shadow:0 10px 28px rgba(34,60,43,.08),inset 0 1px 0 rgba(255,255,255,.95);z-index:4;
+}
+.crumb{color:#66746b}
+.crumb b{color:#1e3026}
+.nav{gap:5px}
+.nav-item{border:1px solid transparent;border-radius:13px;transition:background .18s ease,box-shadow .18s ease,transform .18s ease}
+.nav-item:hover{background:rgba(255,255,255,.52);border-color:rgba(255,255,255,.72)}
+.nav-item.active{background:linear-gradient(145deg,rgba(255,255,255,.88),rgba(231,243,234,.72));border-color:rgba(255,255,255,.95);box-shadow:0 5px 15px rgba(36,81,51,.10),inset 0 1px 0 #fff}
+.nav-item:active{transform:scale(.985)}
+.user-row.profile-trigger{border-radius:16px}
+.user-row.profile-trigger:hover{background:rgba(255,255,255,.54);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.top-avatar{box-shadow:0 3px 10px rgba(30,55,37,.14),inset 0 1px 0 rgba(255,255,255,.8)}
+.icon-btn,.quiet-btn,.filter,.company-chip,.text-btn{transition:background .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.icon-btn:hover,.quiet-btn:hover,.filter:hover,.company-chip:hover{box-shadow:0 4px 13px rgba(30,55,37,.09)}
+.quiet-btn,.filter,.company-chip{border-radius:14px}
+.filter.active{background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(230,242,233,.88));box-shadow:inset 0 1px 0 #fff,0 3px 10px rgba(31,81,49,.08)}
+.demo-pill{background:rgba(244,248,244,.68);border-color:rgba(255,255,255,.88);box-shadow:inset 0 1px 0 rgba(255,255,255,.9)}
+.feed-card,.panel,.market-strip,.person-card,.portfolio-mini,.search-box,.research-main,.research-side{
+  background:rgba(255,255,255,.9);border-color:rgba(224,232,224,.86);box-shadow:0 8px 24px rgba(38,60,43,.055),inset 0 1px 0 rgba(255,255,255,.96)
+}
+.feed-card,.panel,.person-card,.portfolio-mini{border-radius:16px}
+.market-strip{border-radius:17px}
+.feed-card{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.feed-card:hover{transform:translateY(-2px);border-color:rgba(190,211,195,.95);box-shadow:0 13px 30px rgba(38,60,43,.10),inset 0 1px 0 #fff}
+.search-box:focus-within{border-color:rgba(80,142,101,.52);box-shadow:0 0 0 4px rgba(84,153,108,.10),inset 0 1px 0 #fff}
+.network-hero{border:1px solid rgba(255,255,255,.20);border-radius:20px;background:linear-gradient(135deg,#1d382d 0%,#28523c 62%,#3a6648 100%);box-shadow:0 18px 34px rgba(28,61,39,.18),inset 0 1px 0 rgba(255,255,255,.18)}
+.person-card{transition:transform .18s ease,box-shadow .18s ease}
+.person-card:hover{transform:translateY(-2px);box-shadow:0 13px 30px rgba(38,60,43,.10),inset 0 1px 0 #fff}
+.primary-btn{border:1px solid rgba(255,255,255,.82);border-radius:14px;background:linear-gradient(145deg,rgba(237,249,238,.96),rgba(208,236,216,.92));box-shadow:0 5px 14px rgba(9,30,18,.12),inset 0 1px 0 #fff;transition:transform .18s ease,box-shadow .18s ease}
+.primary-btn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(9,30,18,.18),inset 0 1px 0 #fff}
+.primary-btn:active{transform:scale(.98)}
+.modal-backdrop{background:rgba(17,31,23,.34);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)}
+.modal{border:1px solid rgba(255,255,255,.92);border-radius:22px;box-shadow:0 24px 70px rgba(18,39,24,.22),inset 0 1px 0 #fff}
+:where(button,a,input,select):focus-visible{outline:3px solid rgba(64,135,84,.65);outline-offset:3px}
+@media (max-width:700px){
+  .sidebar{inset:auto 12px calc(10px + env(safe-area-inset-bottom)) 12px;width:auto;height:64px;flex-direction:row;align-items:center;padding:5px 8px;margin:0;border:1px solid rgba(255,255,255,.86);border-radius:23px;background:linear-gradient(145deg,rgba(255,255,255,.84),rgba(239,246,239,.74));-webkit-backdrop-filter:blur(26px) saturate(175%);backdrop-filter:blur(26px) saturate(175%);box-shadow:0 14px 34px rgba(22,46,30,.18),inset 0 1px 0 #fff}
+  .main{margin:0 0 calc(86px + env(safe-area-inset-bottom));width:100%}
+  .topbar{top:8px;height:54px;margin:8px 10px 0;padding:0 13px;border-radius:18px}
+  .nav{gap:3px}
+  .nav-item{min-width:52px;border-radius:15px}
+  .nav-item.active{box-shadow:0 3px 12px rgba(36,81,51,.12),inset 0 1px 0 #fff}
+  .market-strip{background:rgba(255,255,255,.88)}
+  .network-hero{border-radius:18px}
+  .feed-card,.panel,.person-card{border-radius:15px}
+}
+@media (prefers-reduced-transparency:reduce){
+  .sidebar,.topbar{background:#f2f5f0;-webkit-backdrop-filter:none;backdrop-filter:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .nav-item,.feed-card,.person-card,.primary-btn,.icon-btn,.quiet-btn,.filter,.company-chip{transition:none}
+  .feed-card:hover,.person-card:hover,.primary-btn:hover{transform:none}
+}
