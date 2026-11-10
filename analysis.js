@@ -93,6 +93,38 @@
     return description + " quarter over quarter in the illustrative values.";
   }
 
+  function scrollToResearchDetail() {
+    const target = $("#research-card");
+    if (!target) return;
+    requestAnimationFrame(() => {
+      const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    });
+  }
+  function openCompanyResearch(ticker) {
+    selected = ticker;
+    navigate("research", { scroll: false });
+    scrollToResearchDetail();
+  }
+  function renderChips() {
+    const input = $("#company-search");
+    const container = $("#company-chips");
+    if (!container) return;
+    const query = String(input?.value || "").trim().toLowerCase();
+    const matches = companies.filter((company) =>
+      (company.name + company.ticker + company.sector).toLowerCase().includes(query)
+    );
+    container.innerHTML = matches.map((company) => {
+      const active = company.ticker === selected;
+      return '<button type="button" class="company-chip ' + (active ? "active" : "") + (company.isResearchOnly ? " ad-hoc" : "") +
+        '" data-ticker="' + escapeHTML(company.ticker) + '" aria-pressed="' + String(active) + '">' +
+        escapeHTML(company.name) + (company.isResearchOnly ? " · RESEARCH" : "") + "</button>";
+    }).join("") || '<span class="muted">No listed match. Press Enter to look up an NSE ticker.</span>';
+    $$(".company-chip", container).forEach((button) => {
+      button.onclick = () => openCompanyResearch(button.dataset.ticker);
+    });
+  }
+
   function renderFeed() {
     const allEligible = alerts.filter(movementPasses).map((alert) => ({ alert, score: alertRelevance(alert) }))
       .sort((first, second) => second.score - first.score);
@@ -143,7 +175,7 @@
     }).join("") || '<p class="muted empty-state">No sample alerts match these filters. Try a lower threshold or another filter.</p>';
 
     $$(".feed-card", feed).forEach((card) => {
-      const openResearch = () => { selected = card.dataset.company; renderResearch(); navigate("research"); };
+      const openResearch = () => openCompanyResearch(card.dataset.company);
       card.addEventListener("click", (event) => { if (!event.target.closest("a")) openResearch(); });
       card.addEventListener("keydown", (event) => {
         if ((event.key === "Enter" || event.key === " ") && !event.target.closest("a")) {
@@ -264,7 +296,7 @@
     slot.innerHTML = '<div class="saved-research-heading"><span class="eyebrow">SAVED RESEARCH · THIS TAB</span><span>' + saved.length + '</span></div><div class="saved-research-list">' +
       saved.map((company) => '<button class="saved-company-chip" type="button" data-saved-company="' + escapeHTML(company.ticker) + '">' + escapeHTML(company.name) + ' <span>→</span></button>').join("") + "</div>";
     $$("[data-saved-company]", slot).forEach((button) => {
-      button.onclick = () => { selected = button.dataset.savedCompany; renderResearch(); navigate("research"); };
+      button.onclick = () => openCompanyResearch(button.dataset.savedCompany);
     });
   }
 
@@ -280,7 +312,7 @@
       : "Choose a company to start a sample research view.";
     if (button) button.textContent = company ? "Continue " + company.name + " research →" : "Start company research →";
     if (button) button.setAttribute("aria-label", company ? "Continue research on " + company.name : "Start company research");
-    if (button) button.onclick = () => { selected = company?.ticker || "HDFCBANK"; renderResearch(); navigate("research"); };
+    if (button) button.onclick = () => openCompanyResearch(company?.ticker || "HDFCBANK");
   }
 
   const sectorTerms = {
@@ -505,6 +537,7 @@
   window.openNetworkContext = openNetworkContext;
   window.renderFeed = renderFeed;
   window.renderResearch = renderResearch;
+  window.renderChips = renderChips;
   if (isFounding) window.renderPeople = renderPeople;
   if (isFounding) {
     $$("[data-open-network]").filter((button) => !button.closest("#research-card"))
@@ -528,6 +561,14 @@
   if (refresh) refresh.onclick = () => toast("Static sample data · live prices, filings, and volume are not connected.");
   updateThresholdModal();
   $$(".nav-item").forEach((button) => { button.onclick = () => navigate(button.dataset.view); });
+  const companySearch = $("#company-search");
+  if (companySearch) {
+    companySearch.addEventListener("input", renderChips);
+    companySearch.addEventListener("keydown", (event) => {
+      const rawTicker = companySearch.value.trim().toUpperCase().replace(/\.NS$/, "");
+      if (event.key === "Enter" && /^[A-Z0-9&-]{1,20}$/.test(rawTicker)) scrollToResearchDetail();
+    });
+  }
   $$(".filter").forEach((button) => {
     button.onclick = () => {
       activeFilter = button.dataset.filter;
