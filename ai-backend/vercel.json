@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/ask-company.js": {
+      "maxDuration": 60
+    }
+  }
+}

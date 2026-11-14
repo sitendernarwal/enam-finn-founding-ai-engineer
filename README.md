@@ -11,6 +11,10 @@ Open `index.html` in a browser, or serve this folder with `python3 -m http.serve
 
 The phone layout includes persistent bottom navigation. Dark mode is the default, with a remembered light-mode option. Charts display illustrative data only; no live market feed is connected.
 
+## AI research assistant
+
+The Research view includes an Ask FINN interface. Its shared server-side API lives in `ai-backend/` and is designed to run on Vercel; GitHub Pages serves only the static interface. The Vercel project URL and `OPENAI_API_KEY` still need to be configured before live answers are available. See [AI_IMPLEMENTATION_ROADMAP.md](AI_IMPLEMENTATION_ROADMAP.md) and [ai-backend/README.md](ai-backend/README.md) for the phases and setup.
+
 ## Demo flows
 
 - Filter a four-item portfolio brief by filings or market moves; open an item to continue into company research.
@@ -23,7 +27,7 @@ The phone layout includes persistent bottom navigation. Dark mode is the default
 
 ## Data and limitations
 
-Everything is a front-end demo. Market values and financial tables are explicitly illustrative; sample alerts and profile matches are not live, verified exchange data. Source links lead to public exchange or company-document discovery pages, not to a specific filing. Six of the 16 tracked companies have illustrative research figures; data for the other ten stays blank until sources are connected. Share quantities, purchase prices, portfolio value, and returns are not provided. Watchlist choices are saved in this browser on this device, not synced to an account. Network profiles are synthetic. Do not treat the prototype as investment advice.
+Market values, financial tables, alerts, and profile matches remain illustrative and are not live market data. Ask FINN is designed to search official exchange domains and cite source links, but it stays unavailable until the Vercel API is deployed and configured. Six tracked companies have illustrative research figures; data for the other ten stays blank until sourced. Share quantities, purchase prices, portfolio value, and returns are not provided. Watchlist choices are saved in this browser on this device, not synced to an account. Network profiles are synthetic. Do not treat the prototype as investment advice.
 
 ## Architecture and production path
 

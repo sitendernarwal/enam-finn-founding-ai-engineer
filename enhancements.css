@@ -554,6 +554,49 @@ html[data-theme="dark"] .portfolio-mini .mini-foot span { color: #93a1ac; }
 .portfolio-empty b { color: var(--ink); font: 700 14px Manrope, sans-serif; }
 .portfolio-empty p { max-width: 360px; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .portfolio-empty .primary-btn { margin-top: 4px; }
+
+/* Source-grounded Ask FINN panel */
+.finn-ai-panel {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid rgba(111, 177, 142, .28);
+  background: linear-gradient(140deg, rgba(233, 247, 237, .68), rgba(255, 255, 255, .82));
+  box-shadow: 0 18px 48px rgba(29, 76, 48, .08), inset 0 1px 0 rgba(255, 255, 255, .65);
+}
+.finn-ai-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.finn-ai-heading h3 { margin: 7px 0 5px; color: var(--ink); font: 750 clamp(20px, 3vw, 25px) Manrope, sans-serif; letter-spacing: -.5px; }
+.finn-ai-intro { max-width: 640px; margin: 0; color: var(--muted); line-height: 1.55; }
+.finn-ai-badge { flex: 0 0 auto; border: 1px solid rgba(40, 111, 73, .16); border-radius: 999px; padding: 7px 10px; background: rgba(45, 124, 80, .09); color: #24734b; font-size: 10px; font-weight: 750; letter-spacing: .45px; }
+.finn-ai-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 12px; }
+.finn-ai-suggestions button { min-height: 36px; border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; background: rgba(255, 255, 255, .62); color: var(--ink); font-size: 11px; font-weight: 650; text-align: left; }
+.finn-ai-suggestions button:hover { border-color: rgba(43, 135, 85, .5); background: rgba(63, 148, 99, .1); }
+.finn-ai-form { display: grid; gap: 10px; }
+.finn-ai-form textarea { width: 100%; min-height: 86px; resize: vertical; border: 1px solid var(--line); border-radius: 14px; padding: 13px 14px; background: rgba(255, 255, 255, .75); color: var(--ink); font: inherit; line-height: 1.5; }
+.finn-ai-form textarea:focus-visible { outline: 3px solid rgba(52, 143, 91, .22); border-color: rgba(43, 135, 85, .7); }
+.finn-ai-form-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: var(--muted); font-size: 10px; }
+.finn-ai-form-foot .primary-btn { min-height: 40px; padding: 0 15px; white-space: nowrap; }
+.finn-ai-form-foot .primary-btn:disabled { cursor: wait; opacity: .66; transform: none; }
+.finn-ai-status { min-height: 18px; margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.finn-ai-answer { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 15px; }
+.finn-ai-answer h4 { margin: 0 0 8px; color: var(--ink); font-size: 13px; }
+.finn-ai-answer-text { margin: 0; color: var(--ink); font-size: 13px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.finn-ai-sources { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 13px; font-size: 11px; }
+.finn-ai-sources strong { flex-basis: 100%; color: var(--muted); font-size: 10px; letter-spacing: .6px; text-transform: uppercase; }
+.finn-ai-sources a { color: var(--green); font-weight: 650; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.finn-ai-disclaimer { margin: 13px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+html[data-theme="dark"] .finn-ai-panel { background-image: linear-gradient(140deg, rgba(32, 63, 49, .42), rgba(21, 29, 34, .7)); }
+html[data-theme="dark"] .finn-ai-badge { background: rgba(86, 201, 133, .14); color: #9ce6b8; border-color: rgba(136, 222, 165, .2); }
+html[data-theme="dark"] .finn-ai-suggestions button,
+html[data-theme="dark"] .finn-ai-form textarea { background-color: rgba(9, 14, 19, .48); color: var(--ink); border-color: var(--line); }
+@media (max-width: 620px) {
+  .finn-ai-heading { flex-direction: column; gap: 10px; }
+  .finn-ai-suggestions { display: grid; grid-template-columns: 1fr; }
+  .finn-ai-suggestions button { width: 100%; min-height: 40px; }
+  .finn-ai-form-foot { align-items: stretch; flex-direction: column; }
+  .finn-ai-form-foot .primary-btn { align-self: flex-end; }
+}
 .empty-star { color: var(--glass-chart); font-size: 26px; }
 .nav-count[hidden] { display: none; }
 @media (max-width: 700px) {
