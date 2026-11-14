@@ -12,7 +12,7 @@ This directory is deployed as a separate Vercel project with Root Directory set 
 ## Setup
 
 1. Import the Founding assignment repository into Vercel and set Root Directory to `ai-backend`.
-2. Vercel deployments receive an OIDC token automatically. The handler uses it to authenticate with AI Gateway. For local development, use a linked Vercel project with `vercel env pull`, or set an `AI_GATEWAY_API_KEY` in an uncommitted local environment file.
+2. Vercel sends an OIDC token in the `x-vercel-oidc-token` header for each function invocation; the handler uses it to authenticate with AI Gateway. For local development, use a linked Vercel project with `vercel env pull`, or set an `AI_GATEWAY_API_KEY` in an uncommitted local environment file.
 3. Deploy, then set the `/api/ask-company` endpoint in each frontend's `ai-config.js`.
 
 ## Endpoint
