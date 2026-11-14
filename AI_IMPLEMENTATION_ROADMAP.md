@@ -10,9 +10,9 @@ The current company figures, alerts, portfolio, and watchlist are prototype data
 
 - Ask FINN and the shared Vercel API are deployed; Gemini key setup is required to activate requests.
 - Both static frontends point to `https://finn-ai-api.vercel.app/api/ask-company`.
-- The backend uses Google's `gemini-2.5-flash` model with Google Search grounding. Google currently lists free model use and up to 500 grounded requests/day on the Gemini 2.5 Flash/Flash-Lite free tier; quotas and terms can change.
+- The backend uses Google's `gemini-3.5-flash-lite` model. It retrieves the selected ticker's recent official NSE disclosure records, then uses Gemini URL Context to read linked filing documents. Gemini's standard free tier covers model tokens; URL Context is listed as free. Google Search grounding is not used because it is not included in this model's free tier. Limits and terms can change.
 - Keep the Google AI Studio project on its Free tier with no billing account linked. Add `GEMINI_API_KEY` only to Vercel's server-side environment; never add it to the static frontend or Git.
-- Google Search is not domain-restricted at the provider level. FINN asks for official NSE/BSE disclosures and the backend only returns HTTPS citation links from those domains; if none are returned, it replaces the answer with a no-verification message.
+- The source lookup is limited to NSE's official corporate-announcements endpoint. Filing attachments and returned citation URLs are accepted only from official NSE domains; if no recent NSE records are returned, FINN says so instead of answering from model memory. The public website endpoint is not a licensed developer data feed and its behavior can change.
 - Google may use free-tier content to improve its products. The app sends only the selected ticker/company and the user's question and warns users not to include personal or confidential details.
 - The AI API is hosted on Vercel; GitHub Pages remains the frontend host.
 
@@ -30,7 +30,7 @@ The current company figures, alerts, portfolio, and watchlist are prototype data
 
 - Add an accessible, mobile-friendly Ask FINN panel to Research in both apps.
 - Offer suggested filing questions and free-form questions for the currently selected company.
-- Use Gemini 2.5 Flash with server-side Google Search grounding and ask it to prefer official NSE/BSE disclosures.
+- Retrieve recent NSE corporate-announcement records for the selected ticker and use Gemini 3.5 Flash-Lite with URL Context to summarize official filing attachments. Do not use Search grounding or model memory as evidence.
 - Show the answer, clickable source links, a clear no-source state, loading/error states, and a research-only disclaimer.
 - Do not send portfolio holdings, watchlists, network profiles, or other personal state to the model.
 
@@ -80,7 +80,7 @@ The current company figures, alerts, portfolio, and watchlist are prototype data
 - Both sites show the same Ask FINN experience in the Research view, including on phone-sized screens.
 - Requests include only the selected ticker/name and the question; no stored portfolio or network records are sent.
 - Gemini API authentication stays server-side and is never included in frontend assets.
-- Web search uses Google grounding; only HTTPS NSE/BSE citations are returned and displayed. If no official citation is available, FINN must say it could not verify the answer.
+- NSE disclosure records are retrieved from the official exchange endpoint; filing URLs and citations are validated against official NSE/BSE domains. If no official record is available, FINN must say it could not verify the answer.
 - The UI distinguishes an unconfigured API, an unsupported/no-source answer, a provider error, and a sourced answer.
 - No response is presented as a buy/sell recommendation, and sample figures remain labelled as illustrative.
 
@@ -89,4 +89,4 @@ The current company figures, alerts, portfolio, and watchlist are prototype data
 - Production secret: `GEMINI_API_KEY` configured in Vercel. For local development, use a local uncommitted environment file.
 - Optional backend setting: `FINN_ALLOWED_ORIGINS` (comma-separated exact origins).
 - Frontend setting: `window.FINN_AI_CONFIG.endpoint` in each `ai-config.js` (already set to the deployed Vercel API URL).
-- Gemini 2.5 Flash model tokens and Google Search grounding are currently listed as free up to the Free-tier quota. Google may use free-tier prompts to improve products; no personal or confidential details should be submitted.
+- Gemini 3.5 Flash-Lite model tokens and URL Context are listed as free on the standard Free tier. Google may use free-tier prompts to improve products; no personal or confidential details should be submitted.

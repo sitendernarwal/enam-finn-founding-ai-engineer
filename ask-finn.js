@@ -8,7 +8,7 @@
         <div>
           <span class="eyebrow">AI · OFFICIAL DISCLOSURES</span>
           <h3 id="finn-ai-heading">Ask FINN</h3>
-          <p class="finn-ai-intro">Search current company disclosures and show official NSE or BSE links when found.</p>
+          <p class="finn-ai-intro">Review recent NSE filings and show official source links when available.</p>
         </div>
         <span class="finn-ai-badge" id="finn-ai-badge">Checking service</span>
       </div>
@@ -65,7 +65,7 @@
       if (!currentBadge || !currentStatus || document.querySelector("[data-finn-form] button[type='submit']")?.disabled) return;
       if (configured === true) {
         currentBadge.textContent = "Gemini connected";
-        currentStatus.textContent = "Connected to Gemini 2.5 Flash with Google Search grounding. Free-tier quotas apply; requests pause when the quota is reached.";
+        currentStatus.textContent = "Connected to Gemini 3.5 Flash-Lite with official NSE filing context. Free-tier quotas apply; requests pause when the quota is reached.";
       } else if (configured === false) {
         currentBadge.textContent = "Service setup required";
         currentStatus.textContent = "Gemini API key is not configured. Add GEMINI_API_KEY to the Vercel project and redeploy the API.";
