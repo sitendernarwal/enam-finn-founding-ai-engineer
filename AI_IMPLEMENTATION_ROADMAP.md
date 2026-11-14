@@ -8,11 +8,12 @@ The current company figures, alerts, portfolio, and watchlist are prototype data
 
 ## Current status
 
-- Ask FINN and the shared Vercel API are deployed.
+- Ask FINN and the shared Vercel API are deployed; Gemini key setup is required to activate requests.
 - Both static frontends point to `https://finn-ai-api.vercel.app/api/ask-company`.
-- OpenAI's API returned `credit_balance_exhausted`, so the backend now uses Vercel AI Gateway's free-eligible `nvidia/nemotron-3.5-lightning-free` model and Parallel Search restricted to NSE/BSE. Search charges use the included $5 monthly AI Gateway allowance; the app does not select paid models, buy credits, or enable auto-reload.
-- Vercel requires a valid payment method on the account to activate the included allowance. Requests stop when the free balance is unavailable or exhausted.
-- The free NVIDIA endpoint may log prompts and responses for service improvement. The app sends only the selected ticker/company and the user's question, and warns users not to include personal or confidential details.
+- The backend uses Google's `gemini-2.5-flash` model with Google Search grounding. Google currently lists free model use and up to 500 grounded requests/day on the Gemini 2.5 Flash/Flash-Lite free tier; quotas and terms can change.
+- Keep the Google AI Studio project on its Free tier with no billing account linked. Add `GEMINI_API_KEY` only to Vercel's server-side environment; never add it to the static frontend or Git.
+- Google Search is not domain-restricted at the provider level. FINN asks for official NSE/BSE disclosures and the backend only returns HTTPS citation links from those domains; if none are returned, it replaces the answer with a no-verification message.
+- Google may use free-tier content to improve its products. The app sends only the selected ticker/company and the user's question and warns users not to include personal or confidential details.
 - The AI API is hosted on Vercel; GitHub Pages remains the frontend host.
 
 ## Delivery phases
@@ -21,15 +22,15 @@ The current company figures, alerts, portfolio, and watchlist are prototype data
 
 - Create one Vercel project from this repository, rooted at `ai-backend/`; this is a server deployment, not GitHub Pages hosting.
 - Add a Node.js API endpoint that both assignment sites can call.
-- Use Vercel's deployment OIDC token to authenticate the Vercel function to AI Gateway. A separate Gateway API key is only needed for local development outside a linked Vercel project.
-- Restrict browser origins, validate ticker/question inputs, bound response size, avoid storing prompts, and search only NSE/BSE domains for the MVP.
+- Use a server-side Gemini API key from Google AI Studio; never expose it in a static frontend.
+- Restrict browser origins, validate ticker/question inputs, bound response size, avoid storing prompts, and validate returned source links against NSE/BSE domains.
 - Set a modest per-IP request throttle. Before broad public use, move throttling to a shared durable store or platform firewall because serverless memory is best-effort.
 
 ### Phase 1 — Ask FINN MVP (implemented in this change)
 
 - Add an accessible, mobile-friendly Ask FINN panel to Research in both apps.
 - Offer suggested filing questions and free-form questions for the currently selected company.
-- Use Vercel AI Gateway's free-eligible text model and server-side Parallel Search with results limited to official NSE/BSE domains.
+- Use Gemini 2.5 Flash with server-side Google Search grounding and ask it to prefer official NSE/BSE disclosures.
 - Show the answer, clickable source links, a clear no-source state, loading/error states, and a research-only disclaimer.
 - Do not send portfolio holdings, watchlists, network profiles, or other personal state to the model.
 
@@ -69,7 +70,7 @@ The current company figures, alerts, portfolio, and watchlist are prototype data
 ## Deployment and setup checklist
 
 1. Create the Vercel project from the Founding assignment repository and set its Root Directory to `ai-backend`.
-2. Keep auto-reload disabled and do not purchase AI Gateway credits. Vercel's deployment OIDC token authenticates production requests; the included monthly free allowance covers search while available.
+2. Create a Gemini API key in Google AI Studio and add it to Vercel as a Sensitive `GEMINI_API_KEY` for Production (and Preview if needed). Leave Google billing unlinked to stay on the free tier.
 3. Deploy the backend and point each frontend's `ai-config.js` to its HTTPS `/api/ask-company` URL.
 4. Deploy the frontends to GitHub Pages. GitHub Pages serves only static UI; Vercel serves the AI API.
 5. Confirm the API accepts the two page origins, then exercise the evaluation checklist above.
@@ -78,14 +79,14 @@ The current company figures, alerts, portfolio, and watchlist are prototype data
 
 - Both sites show the same Ask FINN experience in the Research view, including on phone-sized screens.
 - Requests include only the selected ticker/name and the question; no stored portfolio or network records are sent.
-- Gateway authentication stays server-side and is never included in frontend assets.
-- Web search is constrained to NSE/BSE; source links are HTTPS and validated before display.
+- Gemini API authentication stays server-side and is never included in frontend assets.
+- Web search uses Google grounding; only HTTPS NSE/BSE citations are returned and displayed. If no official citation is available, FINN must say it could not verify the answer.
 - The UI distinguishes an unconfigured API, an unsupported/no-source answer, a provider error, and a sourced answer.
 - No response is presented as a buy/sell recommendation, and sample figures remain labelled as illustrative.
 
 ## Current setup requirements
 
-- Production auth: Vercel OIDC token, provided to the deployed function. Optional local-only auth: `AI_GATEWAY_API_KEY`.
+- Production secret: `GEMINI_API_KEY` configured in Vercel. For local development, use a local uncommitted environment file.
 - Optional backend setting: `FINN_ALLOWED_ORIGINS` (comma-separated exact origins).
 - Frontend setting: `window.FINN_AI_CONFIG.endpoint` in each `ai-config.js` (already set to the deployed Vercel API URL).
-- The free AI Gateway allowance requires a valid payment method on the Vercel account. Do not add paid credits or enable auto-reload for this prototype. Model token pricing is $0; search costs $5 per 1,000 calls and is covered only while the included allowance remains.
+- Gemini 2.5 Flash model tokens and Google Search grounding are currently listed as free up to the Free-tier quota. Google may use free-tier prompts to improve products; no personal or confidential details should be submitted.
