@@ -8,7 +8,7 @@
         <div>
           <span class="eyebrow">AI · OFFICIAL DISCLOSURES</span>
           <h3 id="finn-ai-heading">Ask FINN</h3>
-          <p class="finn-ai-intro">Research the selected company using NSE and BSE disclosures. Answers include source links.</p>
+          <p class="finn-ai-intro">Research the selected company using NSE and BSE disclosures. Answers include official source links.</p>
         </div>
         <span class="finn-ai-badge" id="finn-ai-badge">Checking service</span>
       </div>
@@ -20,7 +20,7 @@
       <form class="finn-ai-form" data-finn-form>
         <label class="sr-only" for="finn-ai-question">Ask a question about this company</label>
         <textarea id="finn-ai-question" name="question" rows="3" minlength="8" maxlength="800" required placeholder="Ask about results, filings, risks, or outlook…"></textarea>
-        <div class="finn-ai-form-foot"><span>Up to 800 characters · No personal portfolio data is sent</span><button class="primary-btn" type="submit">Ask FINN <span aria-hidden="true">↗</span></button></div>
+        <div class="finn-ai-form-foot"><span>Company, ticker and question are sent to AI Gateway. Avoid personal or confidential details.</span><button class="primary-btn" type="submit">Ask FINN <span aria-hidden="true">↗</span></button></div>
       </form>
       <p class="finn-ai-status" id="finn-ai-status" role="status" aria-live="polite"></p>
       <div class="finn-ai-answer" id="finn-ai-answer" hidden>
@@ -64,11 +64,11 @@
       const currentStatus = document.querySelector("#finn-ai-status");
       if (!currentBadge || !currentStatus || document.querySelector("[data-finn-form] button[type='submit']")?.disabled) return;
       if (configured === true) {
-        currentBadge.textContent = "Key configured";
-        currentStatus.textContent = "The API key is configured. Live answers also require available OpenAI API credits and usage limits.";
+        currentBadge.textContent = "Gateway connected";
+        currentStatus.textContent = "Connected to Vercel AI Gateway. Research uses the included monthly allowance and pauses when it is unavailable or exhausted.";
       } else if (configured === false) {
-        currentBadge.textContent = "Key setup required";
-        currentStatus.textContent = "The Vercel API is deployed. Add OPENAI_API_KEY in its environment settings to enable answers.";
+        currentBadge.textContent = "Service setup required";
+        currentStatus.textContent = "Vercel AI Gateway authentication is missing. Deploy this service on Vercel or add an AI Gateway key for local use.";
       } else {
         currentBadge.textContent = "Service unavailable";
         currentStatus.textContent = "Could not check the AI API. Confirm its Vercel deployment is available.";
