@@ -73,6 +73,12 @@
 
 **AI:** I fixed the dark-theme contrast in the calculation panel and added a quarterly revenue chart that appears only when sample revenue inputs are available. I also made the market simulation, chart, and dashboard quotes stay in sync. The figures remain clearly labeled as illustrative.
 
+### 11. Add portfolio and watchlist views
+
+**User:** Now add a Portfolio option and a Watchlist option too.
+
+**AI:** I added separate Portfolio and Watchlist screens to the navigation. Portfolio lists all 16 tracked demo companies, supports search, and opens each company's research. Companies can be added or removed from the Watchlist, which is saved in this browser on this device. The portfolio clearly says that position sizes and returns are not connected, and unsourced figures remain blank.
+
 ## Delivered prototype
 
 - Push daily brief with sample event filters, relevance reasons, and editable demo thresholds
@@ -84,6 +90,7 @@
 - Phone-friendly bottom navigation with safe-area spacing
 - Simulated market pulse with a synchronized chart and clearly labeled dashboard quotes
 - Quarterly revenue chart and higher-contrast calculation cards for companies with sample data
+- A searchable Portfolio screen for 16 tracked companies, plus a Watchlist that saves on the current device
 
 ## Validation and deployment
 
@@ -91,6 +98,7 @@
 - HTML structure checks found no duplicate IDs or missing local scripts.
 - GitHub Pages deployments completed successfully.
 - A 390 px responsive browser preview confirmed the bottom navigation, theme toggle, simulated chart, and no horizontal overflow. The company-tap scroll fix is deployed; this browser preview is not a physical-device retest.
+- Portfolio and Watchlist additions passed syntax, unique-ID, navigation-route, and local-script checks; a fresh phone visual review of these screens is pending.
 
 **Live prototype:** https://sitendernarwal.github.io/enam-finn-founding-ai-engineer/  
 **Public repository:** https://github.com/sitendernarwal/enam-finn-founding-ai-engineer
@@ -98,7 +106,7 @@
 ## Known limits
 
 - Prices, financial values, alerts, and events are illustrative; no live market feed, filing ingestion, or fundamentals pipeline is connected.
-- Network profiles are synthetic, and draft/saved state is local to the browser session.
+- Network profiles are synthetic, private drafts remain in the browser session, and the Watchlist is saved locally on this device.
 - The prototype does not call a language model or present AI-generated financial conclusions as verified facts.
 - Source links lead to discovery pages rather than the specific documents behind sample claims.
 
