@@ -14,6 +14,7 @@ This is a truthful summary of the Codex-assisted work in this workspace, not a v
 
 - Added a dark-default theme with a remembered light-mode toggle, phone-safe bottom navigation, and higher-contrast financial calculations.
 - Added a quarterly revenue chart shown only when sample company inputs are available, plus a synchronized simulated market pulse.
+- Added searchable Portfolio and Watchlist screens, with browser-local watchlist persistence and explicit disclosures that real positions and returns are not connected.
 - Checked the responsive layout at a 390 px browser viewport; horizontal overflow was not present. This was not a physical-device retest.
 
 ## AI use and review approach
