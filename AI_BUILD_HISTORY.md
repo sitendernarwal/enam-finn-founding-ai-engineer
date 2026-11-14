@@ -1,6 +1,6 @@
 # AI build history summary
 
-This is a truthful summary of the Codex-assisted work in this workspace, not an export of the complete conversation transcript.
+This is a truthful summary of the Codex-assisted work in this workspace, not a verbatim conversation transcript. The companion history.md is a curated, dialogue-style project record.
 
 ## Work completed in this session
 
@@ -12,8 +12,12 @@ This is a truthful summary of the Codex-assisted work in this workspace, not an 
 - Published the static prototype to GitHub Pages and opened the live page in a desktop browser: https://sitendernarwal.github.io/enam-finn-founding-ai-engineer/.
 - Created the public source repository: https://github.com/sitendernarwal/enam-finn-founding-ai-engineer.
 
+- Added a dark-default theme with a remembered light-mode toggle, phone-safe bottom navigation, and higher-contrast financial calculations.
+- Added a quarterly revenue chart shown only when sample company inputs are available, plus a synchronized simulated market pulse.
+- Checked the responsive layout at a 390 px browser viewport; horizontal overflow was not present. This was not a physical-device retest.
+
 ## AI use and review approach
 
 Codex assisted with UI structure, seed data, interactions, documentation, and a requirements audit. All sample values and alert stories are illustrative. No live data provider or language model is connected in this prototype; no AI-generated financial conclusion is presented as verified fact.
 
-For the submission’s build-history checkpoint, export or share the full Codex thread from the desktop app and include that link or export with the repository.
+For the build-history checkpoint, use the curated history.md included in the repository. A full Codex export or share link can be provided if a reviewer specifically asks for the complete raw conversation.
