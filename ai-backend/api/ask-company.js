@@ -91,7 +91,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const gatewayToken = process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN;
+  const gatewayToken = process.env.AI_GATEWAY_API_KEY || req.headers["x-vercel-oidc-token"] || process.env.VERCEL_OIDC_TOKEN;
   if (req.method === "GET") {
     return send(res, 200, { configured: Boolean(gatewayToken), provider: "Vercel AI Gateway" }, corsHeaders);
   }
