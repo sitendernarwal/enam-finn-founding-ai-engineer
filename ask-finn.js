@@ -65,7 +65,7 @@
       if (!currentBadge || !currentStatus || document.querySelector("[data-finn-form] button[type='submit']")?.disabled) return;
       if (configured === true) {
         currentBadge.textContent = "Gemini connected";
-        currentStatus.textContent = "Connected to Gemini 3.5 Flash-Lite with official NSE filing context. Free-tier quotas apply; requests pause when the quota is reached.";
+        currentStatus.textContent = "Connected to Gemini 3.5 Flash-Lite with recent NSE announcement metadata. Open the linked filing to verify details; free-tier quotas apply.";
       } else if (configured === false) {
         currentBadge.textContent = "Service setup required";
         currentStatus.textContent = "Gemini API key is not configured. Add GEMINI_API_KEY to the Vercel project and redeploy the API.";
@@ -171,7 +171,7 @@
         }
       }
       if (answerBox) answerBox.hidden = false;
-      if (status) status.textContent = "Research response ready. Review the linked filings below.";
+      if (status) status.textContent = "Research response ready from NSE announcement metadata. Open the linked filing to verify details.";
     } catch (error) {
       if (status) status.textContent = error?.name === "TypeError"
         ? "Could not reach FINN AI. Check that the Vercel API is deployed and connected."

@@ -13,7 +13,7 @@ The phone layout includes persistent bottom navigation. Dark mode is the default
 
 ## AI research assistant
 
-The Research view includes Ask FINN. Its shared server-side API lives in `ai-backend/` and runs on Vercel; GitHub Pages serves only the static interface. The API retrieves recent official NSE disclosures and uses Gemini 3.5 Flash-Lite with URL Context to summarize the linked filing documents. The API key stays in Vercel. See [AI_IMPLEMENTATION_ROADMAP.md](AI_IMPLEMENTATION_ROADMAP.md) and [ai-backend/README.md](ai-backend/README.md) for setup and free-tier limits.
+The Research view includes Ask FINN. Its shared server-side API lives in `ai-backend/` and runs on Vercel; GitHub Pages serves only the static interface. The API retrieves recent official NSE announcement metadata and asks Gemini 3.5 Flash-Lite to summarize those records. Official filing links are returned separately for verification. The API key stays in Vercel. See [AI_IMPLEMENTATION_ROADMAP.md](AI_IMPLEMENTATION_ROADMAP.md) and [ai-backend/README.md](ai-backend/README.md) for setup and free-tier limits.
 
 ## Demo flows
 
