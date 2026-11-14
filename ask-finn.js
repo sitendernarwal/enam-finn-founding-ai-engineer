@@ -88,7 +88,8 @@
     try {
       const url = new URL(value);
       const host = url.hostname.toLowerCase();
-      const official = ["nseindia.com", "bseindia.com"].some((domain) => host === domain || host.endsWith("." + domain));
+      const official = ["nseindia.com", "nsearchives.nseindia.com", "nseindia.in", "nsearchives.nseindia.in", "bseindia.com"]
+        .some((domain) => host === domain || host.endsWith("." + domain));
       return url.protocol === "https:" && official ? url.href : null;
     } catch {
       return null;

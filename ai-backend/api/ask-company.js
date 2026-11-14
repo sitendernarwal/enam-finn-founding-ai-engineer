@@ -46,7 +46,7 @@ function safeSource(value, title) {
   try {
     const parsed = new URL(value, "https://www.nseindia.com");
     const host = parsed.hostname.toLowerCase();
-    const official = ["nseindia.com", "nsearchives.nseindia.com", "bseindia.com"]
+    const official = ["nseindia.com", "nsearchives.nseindia.com", "nseindia.in", "nsearchives.nseindia.in", "bseindia.com"]
       .some((domain) => host === domain || host.endsWith(`.${domain}`));
     if (parsed.protocol !== "https:" || !official) return null;
     return { title: String(title || host).slice(0, 180), url: parsed.href };
@@ -92,8 +92,8 @@ function listRecords(payload) {
 
 function normalizeDisclosure(record, index) {
   const symbol = String(firstField(record, ["symbol", "sm_symbol", "ticker"])).trim().toUpperCase();
-  const title = String(firstField(record, ["subject", "sub", "category", "desc", "announcement"])).trim();
-  const description = String(firstField(record, ["desc", "description", "details", "announcement", "subject", "sub"])).trim();
+  const title = String(firstField(record, ["desc", "subject", "sub", "category", "announcement"])).trim();
+  const description = String(firstField(record, ["attchmntText", "attachmentText", "announcementText", "description", "details", "announcement"])).trim();
   const company = String(firstField(record, ["sm_name", "company_name", "companyName", "name"])).trim();
   const date = String(firstField(record, ["an_dt", "dissemDT", "broadcast_date", "date", "filing_date"])).trim();
   const attachmentValue = String(firstField(record, ["attchmntFile", "attachment_file", "attachment", "file_url", "fileUrl", "url"])).trim();
