@@ -162,7 +162,14 @@ export default async function handler(req, res) {
     });
     const response = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
-      console.error("FINN AI provider request failed", upstream.status, response?.error?.code || "upstream_error");
+      const providerCode = response?.error?.code || "upstream_error";
+      console.error("FINN AI provider request failed", upstream.status, providerCode);
+      if (providerCode === "credit_balance_exhausted") {
+        return send(res, 503, { error: "The OpenAI API organization has no available credits. Add credits in its API billing settings, then try again." }, corsHeaders);
+      }
+      if (["organization_usage_limit_exceeded", "project_spend_limit_exceeded", "organization_spend_limit_exceeded"].includes(providerCode)) {
+        return send(res, 503, { error: "The OpenAI API usage limit has been reached. Review the organization or project usage settings, then try again." }, corsHeaders);
+      }
       if (upstream.status === 429) return send(res, 503, { error: "The AI provider is busy. Please try again shortly." }, corsHeaders);
       return send(res, 502, { error: "FINN could not complete this research request. Please try again." }, corsHeaders);
     }

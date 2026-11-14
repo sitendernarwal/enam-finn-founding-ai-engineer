@@ -64,8 +64,8 @@
       const currentStatus = document.querySelector("#finn-ai-status");
       if (!currentBadge || !currentStatus || document.querySelector("[data-finn-form] button[type='submit']")?.disabled) return;
       if (configured === true) {
-        currentBadge.textContent = "NSE · BSE sources";
-        currentStatus.textContent = "AI is ready. Answers search official exchange disclosures and include source links.";
+        currentBadge.textContent = "Key configured";
+        currentStatus.textContent = "The API key is configured. Live answers also require available OpenAI API credits and usage limits.";
       } else if (configured === false) {
         currentBadge.textContent = "Key setup required";
         currentStatus.textContent = "The Vercel API is deployed. Add OPENAI_API_KEY in its environment settings to enable answers.";

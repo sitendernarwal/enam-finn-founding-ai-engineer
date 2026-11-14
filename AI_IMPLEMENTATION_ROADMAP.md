@@ -10,7 +10,7 @@ The current company figures, alerts, portfolio, and watchlist are prototype data
 
 - Ask FINN and the shared Vercel API are deployed.
 - Both static frontends point to `https://finn-ai-api.vercel.app/api/ask-company`.
-- Live answers are waiting for the owner to add `OPENAI_API_KEY` in the Vercel project settings. The API reports this setup state in the Research panel.
+- `OPENAI_API_KEY` is stored in Vercel. OpenAI returned `credit_balance_exhausted` during the first live request; live answers need available API credits or usage allowance. The API reports key configuration in the Research panel.
 - The AI API is hosted on Vercel; GitHub Pages remains the frontend host.
 
 ## Delivery phases
