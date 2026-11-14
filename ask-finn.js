@@ -1,6 +1,7 @@
 (() => {
   "use strict";
 
+  let serviceStatePromise;
   const panelMarkup = `
     <section class="panel finn-ai-panel" id="finn-ai-assistant" aria-labelledby="finn-ai-heading">
       <div class="finn-ai-heading">
@@ -35,16 +36,44 @@
     const layout = card?.querySelector(".research-layout");
     if (!layout || layout.querySelector("#finn-ai-assistant")) return;
     layout.insertAdjacentHTML("beforeend", panelMarkup);
+    updateServiceStatus();
+  }
+
+  function updateServiceStatus() {
     const endpoint = window.FINN_AI_CONFIG?.endpoint;
     const badge = document.querySelector("#finn-ai-badge");
     const status = document.querySelector("#finn-ai-status");
-    if (endpoint) {
-      if (badge) badge.textContent = "NSE · BSE sources";
-      if (status) status.textContent = "Answers search official exchange disclosures and include source links.";
-    } else {
+    if (!endpoint) {
       if (badge) badge.textContent = "Setup required";
       if (status) status.textContent = "The AI service will be available after the shared Vercel API is deployed and connected.";
+      return;
     }
+    if (badge) badge.textContent = "Checking service";
+    if (status) status.textContent = "Checking that the AI service is configured…";
+    if (!serviceStatePromise) {
+      serviceStatePromise = fetch(endpoint, { method: "GET" })
+        .then(async (response) => {
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error("service_unavailable");
+          return Boolean(payload.configured);
+        })
+        .catch(() => null);
+    }
+    serviceStatePromise.then((configured) => {
+      const currentBadge = document.querySelector("#finn-ai-badge");
+      const currentStatus = document.querySelector("#finn-ai-status");
+      if (!currentBadge || !currentStatus || document.querySelector("[data-finn-form] button[type='submit']")?.disabled) return;
+      if (configured === true) {
+        currentBadge.textContent = "NSE · BSE sources";
+        currentStatus.textContent = "AI is ready. Answers search official exchange disclosures and include source links.";
+      } else if (configured === false) {
+        currentBadge.textContent = "Key setup required";
+        currentStatus.textContent = "The Vercel API is deployed. Add OPENAI_API_KEY in its environment settings to enable answers.";
+      } else {
+        currentBadge.textContent = "Service unavailable";
+        currentStatus.textContent = "Could not check the AI API. Confirm its Vercel deployment is available.";
+      }
+    });
   }
 
   function selectedCompany() {

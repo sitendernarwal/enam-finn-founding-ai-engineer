@@ -90,7 +90,7 @@ export default async function handler(req, res) {
 
   const corsHeaders = {
     "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Max-Age": "600",
     Vary: "Origin"
@@ -101,7 +101,8 @@ export default async function handler(req, res) {
     res.end();
     return;
   }
-  if (req.method !== "POST") return send(res, 405, { error: "Use POST for research questions." }, { Allow: "POST, OPTIONS", ...corsHeaders });
+  if (req.method === "GET") return send(res, 200, { configured: Boolean(process.env.OPENAI_API_KEY) }, corsHeaders);
+  if (req.method !== "POST") return send(res, 405, { error: "Use POST for research questions." }, { Allow: "GET, POST, OPTIONS", ...corsHeaders });
 
   if (!process.env.OPENAI_API_KEY) {
     return send(res, 503, { error: "FINN AI is not configured yet. Add the API key in the Vercel project settings." }, corsHeaders);
@@ -115,7 +116,7 @@ export default async function handler(req, res) {
     return send(res, 400, { error: "Enter a ticker and a research question between 8 and 800 characters." }, corsHeaders);
   }
 
-  const ip = String(req.headers["x-forwarded-for"] || req.headers["x-real-ip"] || "unknown").split(",")[0].trim().slice(0, 100);
+  const ip = String(req.headers["x-real-ip"] || req.headers["x-forwarded-for"] || "unknown").split(",")[0].trim().slice(0, 100);
   const limit = takeRateLimit(ip || "unknown");
   if (!limit.allowed) {
     return send(res, 429, { error: "You have reached the short-term demo request limit. Please try again later." }, {

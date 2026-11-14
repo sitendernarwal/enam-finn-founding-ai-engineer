@@ -6,6 +6,13 @@ Build FINN as a source-grounded research assistant. Keep the assignment frontend
 
 The current company figures, alerts, portfolio, and watchlist are prototype data. AI must not describe those sample values as current facts or use them to calculate real returns. Calculation logic stays deterministic and must use verified inputs before it can be presented as live analysis.
 
+## Current status
+
+- Ask FINN and the shared Vercel API are deployed.
+- Both static frontends point to `https://finn-ai-api.vercel.app/api/ask-company`.
+- Live answers are waiting for the owner to add `OPENAI_API_KEY` in the Vercel project settings. The API reports this setup state in the Research panel.
+- The AI API is hosted on Vercel; GitHub Pages remains the frontend host.
+
 ## Delivery phases
 
 ### Phase 0 — Safe AI foundation
@@ -61,10 +68,9 @@ The current company figures, alerts, portfolio, and watchlist are prototype data
 
 1. Create the Vercel project from the Founding assignment repository and set its Root Directory to `ai-backend`.
 2. Set `OPENAI_API_KEY` in Vercel Project Settings → Environment Variables (Production and Preview as needed). Do not paste it into chat, source files, or GitHub.
-3. Deploy the backend and copy its HTTPS URL.
-4. Put the resulting `/api/ask-company` URL in `ai-config.js` in each frontend repository.
-5. Deploy the frontends to GitHub Pages. GitHub Pages serves only static UI; Vercel serves the AI API.
-6. Confirm the API accepts the two page origins, then exercise the evaluation checklist above.
+3. Deploy the backend and point each frontend's `ai-config.js` to its HTTPS `/api/ask-company` URL.
+4. Deploy the frontends to GitHub Pages. GitHub Pages serves only static UI; Vercel serves the AI API.
+5. Confirm the API accepts the two page origins, then exercise the evaluation checklist above.
 
 ## MVP acceptance criteria
 
@@ -79,5 +85,5 @@ The current company figures, alerts, portfolio, and watchlist are prototype data
 
 - Required secret: `OPENAI_API_KEY` (set by the project owner in Vercel, not committed here).
 - Optional backend settings: `OPENAI_MODEL` (defaults to `gpt-6.1-sol`) and `FINN_ALLOWED_ORIGINS` (comma-separated exact origins).
-- Frontend setting: `window.FINN_AI_CONFIG.endpoint` in each `ai-config.js` (filled with the deployed Vercel API URL).
+- Frontend setting: `window.FINN_AI_CONFIG.endpoint` in each `ai-config.js` (already set to the deployed Vercel API URL).
 - A valid OpenAI API project with API billing/usage enabled is required; a ChatGPT subscription alone is not an API key.

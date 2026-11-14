@@ -21,6 +21,6 @@ This directory is deployed as a separate Vercel project with Root Directory set 
 }
 ```
 
-The endpoint uses the OpenAI Responses API with web search restricted to NSE/BSE domains. It returns plain answer text plus validated HTTPS citations. The endpoint does not receive saved portfolio, watchlist, or network data.
+`GET /api/ask-company` reports whether the OpenAI key is configured so the frontend can show setup status without exposing the key. `POST` uses the OpenAI Responses API with web search restricted to NSE/BSE domains and returns plain answer text plus validated HTTPS citations. The endpoint does not receive saved portfolio, watchlist, or network data.
 
 The in-memory per-IP throttle is best-effort because serverless instances do not share memory. Before broad public use, replace it with a shared rate-limit store or a platform firewall rule and set usage budgets/alerts in the model provider account.
