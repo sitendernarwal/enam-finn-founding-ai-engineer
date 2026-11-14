@@ -190,6 +190,29 @@
     return '<article class="calculated-card"><span class="calculated-label">' + escapeHTML(title) + '</span><strong>' + escapeHTML(value) +
       '</strong><small>' + escapeHTML(formula) + '</small><span class="calculation-input">' + escapeHTML(inputLine) + "</span></article>";
   }
+  function revenueTrendChart(values) {
+    const points = periods.map((period, index) => ({ period, value: values[index] }))
+      .filter((point) => Number.isFinite(point.value));
+    if (points.length < 2) return "";
+    const min = Math.min(...points.map((point) => point.value));
+    const range = Math.max(Math.max(...points.map((point) => point.value)) - min, Math.abs(min) * 0.08, 1);
+    const coords = points.map((point, index) => ({
+      x: 58 + (index / (points.length - 1)) * 504,
+      y: 145 - ((point.value - min) / range) * 105
+    }));
+    const line = coords.map((point, index) => (index ? "L " : "M ") + point.x.toFixed(1) + " " + point.y.toFixed(1)).join(" ");
+    const area = line + " L " + coords[coords.length - 1].x.toFixed(1) + " 162 L " + coords[0].x.toFixed(1) + " 162 Z";
+    const summaries = points.map((point) => '<div class="revenue-period"><span>' + escapeHTML(point.period) + '</span><b>' +
+      escapeHTML(formatAmount(point.value)) + '</b></div>').join("");
+    const description = points.map((point) => point.period + " " + formatAmount(point.value)).join("; ");
+    return '<figure class="revenue-trend" aria-labelledby="revenue-trend-heading"><div class="revenue-trend-head"><div><span class="eyebrow">QUARTERLY TREND</span>' +
+      '<h3 id="revenue-trend-heading">Revenue over time</h3></div><span class="revenue-trend-unit">Illustrative · INR crore</span></div>' +
+      '<svg class="revenue-chart" viewBox="0 0 620 178" preserveAspectRatio="none" role="img" aria-label="Illustrative revenue trend: ' + escapeHTML(description) + '">' +
+      '<defs><linearGradient id="revenueFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="var(--glass-chart)" stop-opacity=".28"/><stop offset="100%" stop-color="var(--glass-chart)" stop-opacity="0"/></linearGradient></defs>' +
+      '<path class="revenue-grid" d="M24 35H596 M24 88H596 M24 141H596"/><path class="revenue-area" d="' + area + '"/><path class="revenue-line" d="' + line + '"/>' +
+      coords.map((point) => '<circle class="revenue-point" cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="5"/>').join("") +
+      '</svg><div class="revenue-periods">' + summaries + '</div><figcaption>Sample inputs only. Verify each period against the company’s filings.</figcaption></figure>';
+  }
   function renderResearch() {
     const company = getCompany(selected);
     if (!company) return;
@@ -246,7 +269,7 @@
       '<div class="metric-grid"><div class="metric"><span>Share price</span><b>' + displayedPrice + '</b><small>' + displayedChange + '</small></div><div class="metric"><span>Market cap</span><b>' + displayedCap +
       '</b><small>' + (company.marketCap === "—" ? "Source needed" : "Illustrative only") + '</small></div><div class="metric"><span>Revenue · Q2 FY27</span><b>' + displayedRevenue +
       '</b><small>' + (revenue[2] == null ? "Source needed" : "Sample input") + '</small></div><div class="metric"><span>PAT · Q2 FY27</span><b>' + displayedPat +
-      '</b><small>' + (pat[2] == null ? "Source needed" : "Sample input") + '</small></div></div>' +
+      '</b><small>' + (pat[2] == null ? "Source needed" : "Sample input") + '</small></div></div>' + revenueTrendChart(revenue) +
       '<section class="calculation-section" aria-labelledby="calculation-heading"><div class="calculation-heading"><div><span class="eyebrow">TRANSPARENT CALCULATIONS</span><h3 id="calculation-heading">What the sample numbers imply</h3></div><span class="calculation-stamp">DEMO ONLY</span></div>' +
       '<div class="calculated-grid">' + cards.join("") + '</div><p class="source-status">' + escapeHTML(sourceStatus) + '</p></section>' +
       '<div class="research-section">' + (company.dataAvailable === false ? '<div class="analysis-note"><b>Source lookup only</b><br>No imported or verified financial data is available for this ticker. Values and calculations stay blank until sourced.</div>' : "") +
