@@ -265,7 +265,7 @@
     if (!body) return;
     body.innerHTML = '<div class="research-layout"><div class="panel research-main">' +
       '<div class="company-title"><div class="company-logo">' + escapeHTML(company.short || company.ticker.slice(0, 6)) + '</div><div><h2>' + name + '</h2><p>' + ticker + " · " + sector + ' · NSE / BSE · illustrative</p></div>' +
-      '<button class="quiet-btn company-actions" id="follow-btn" aria-pressed="' + String(followedCompanies.has(company.ticker)) + '">' + (followedCompanies.has(company.ticker) ? "✓ Saved" : "＋ Save research") + '</button></div>' +
+      '<button class="quiet-btn company-actions" id="follow-btn" aria-pressed="' + String(followedCompanies.has(company.ticker)) + '">' + (followedCompanies.has(company.ticker) ? "✓ In watchlist" : "☆ Add to watchlist") + '</button></div>' +
       '<div class="metric-grid"><div class="metric"><span>Share price</span><b>' + displayedPrice + '</b><small>' + displayedChange + '</small></div><div class="metric"><span>Market cap</span><b>' + displayedCap +
       '</b><small>' + (company.marketCap === "—" ? "Source needed" : "Illustrative only") + '</small></div><div class="metric"><span>Revenue · Q2 FY27</span><b>' + displayedRevenue +
       '</b><small>' + (revenue[2] == null ? "Source needed" : "Sample input") + '</small></div><div class="metric"><span>PAT · Q2 FY27</span><b>' + displayedPat +
@@ -289,13 +289,17 @@
     if (followButton) followButton.onclick = () => {
       if (followedCompanies.has(company.ticker)) {
         followedCompanies.delete(company.ticker);
-        toast(company.name + " removed from saved research");
+        toast(company.name + " removed from watchlist");
       } else {
         followedCompanies.add(company.ticker);
-        toast(company.name + " saved for later");
+        toast(company.name + " added to watchlist");
       }
-      try { sessionStorage.setItem("finn-followed", JSON.stringify([...followedCompanies])); } catch {}
-      followButton.textContent = followedCompanies.has(company.ticker) ? "✓ Saved" : "＋ Save research";
+      try {
+        const saved = JSON.stringify([...followedCompanies]);
+        localStorage.setItem("finn-followed", saved);
+        sessionStorage.setItem("finn-followed", saved);
+      } catch {}
+      followButton.textContent = followedCompanies.has(company.ticker) ? "✓ In watchlist" : "☆ Add to watchlist";
       followButton.setAttribute("aria-pressed", String(followedCompanies.has(company.ticker)));
       updateSavedResearch();
     };
@@ -316,7 +320,7 @@
       return;
     }
     slot.hidden = false;
-    slot.innerHTML = '<div class="saved-research-heading"><span class="eyebrow">SAVED RESEARCH · THIS TAB</span><span>' + saved.length + '</span></div><div class="saved-research-list">' +
+    slot.innerHTML = '<div class="saved-research-heading"><span class="eyebrow">WATCHLIST · THIS DEVICE</span><span>' + saved.length + '</span></div><div class="saved-research-list">' +
       saved.map((company) => '<button class="saved-company-chip" type="button" data-saved-company="' + escapeHTML(company.ticker) + '">' + escapeHTML(company.name) + ' <span>→</span></button>').join("") + "</div>";
     $$("[data-saved-company]", slot).forEach((button) => {
       button.onclick = () => openCompanyResearch(button.dataset.savedCompany);
