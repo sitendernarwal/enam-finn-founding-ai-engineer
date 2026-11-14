@@ -9,13 +9,16 @@ A responsive, mobile-first prototype for an investor's daily workflow: a priorit
 
 Open `index.html` in a browser, or serve this folder with `python3 -m http.server 8000` and visit `http://localhost:8000`.
 
+The phone layout includes persistent bottom navigation. Dark mode is the default, with a remembered light-mode option. Charts display illustrative data only; no live market feed is connected.
+
 ## Demo flows
 
 - Filter a four-item portfolio brief by filings or market moves; open an item to continue into company research.
-- Search the sample companies, compare illustrative quarterly metrics, review a bull and bear case, and follow a company.
+- Search the sample companies, review the quarterly revenue chart and illustrative calculations, compare risks, and save research.
 - Explore synthetic network profiles, filter by expertise, and draft a private question without sending it.
 - Open alert preferences and the network privacy explanation.
 - Use `⌘K` / `Ctrl+K` to jump to company research.
+- Review the simulated NIFTY 50 pulse and synchronized dashboard quotes.
 
 ## Data and limitations
 
