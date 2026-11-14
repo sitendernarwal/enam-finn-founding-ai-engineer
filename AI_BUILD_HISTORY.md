@@ -19,6 +19,6 @@ This is a truthful summary of the Codex-assisted work in this workspace, not a v
 
 ## AI use and review approach
 
-Codex assisted with UI structure, seed data, interactions, documentation, and a requirements audit. All sample values and alert stories are illustrative. No live data provider or language model is connected in this prototype; no AI-generated financial conclusion is presented as verified fact.
+Codex assisted with UI structure, seed data, interactions, documentation, and requirements audits. All sample values and alert stories are illustrative. Ask FINN now uses a shared server-side Gemini 2.5 Flash API with Google Search grounding; a Gemini API key must be configured in Vercel before live requests work. The backend displays only validated NSE/BSE source links and does not use AI for calculations. No live market-price feed is connected.
 
 For the build-history checkpoint, use the curated history.md included in the repository. A full Codex export or share link can be provided if a reviewer specifically asks for the complete raw conversation.
