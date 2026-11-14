@@ -4,15 +4,15 @@ This directory is deployed as a separate Vercel project with Root Directory set 
 
 ## Provider and cost controls
 
-- Requests use Vercel AI Gateway's free-eligible `nvidia/nemotron-3.5-lightning-free` model and the Parallel web-search tool restricted to NSE/BSE domains.
-- The model's listed input and output token prices are $0. Search is billed at $5 per 1,000 search calls, covered by Vercel's included $5 monthly AI Gateway allowance while it is available. The endpoint never selects a paid model or buys credits. Keep auto-reload disabled; requests stop with a clear error when the free balance is unavailable or exhausted.
-- Vercel requires a valid payment method on the account to activate free AI Gateway credits. The app does not add one or purchase credits.
-- The free NVIDIA endpoint may log prompts and responses to improve its services. Only the selected company, ticker, and typed question are sent; users are told not to include personal or confidential details.
+- Requests use Google's `gemini-2.5-flash` model with Google Search grounding. Google currently lists model tokens as free and grounding as free up to 500 requests/day for the Gemini 2.5 Flash/Flash-Lite free tier; quotas and terms can change.
+- Keep the Google AI Studio project on the Free tier with no billing account linked. When free-tier quota is exhausted, requests should be rejected by Google rather than billed.
+- Google Search grounding is not restricted at the provider level to NSE/BSE. The system prompt requests exchange-only research, and the backend only returns citation URLs on `nseindia.com` or `bseindia.com`; if no official source is returned, it replaces the answer with a no-verification message.
+- Google may use free-tier prompts and responses to improve its products. Only the selected company, ticker, and typed question are sent; users are told not to include personal or confidential details.
 
 ## Setup
 
 1. Import the Founding assignment repository into Vercel and set Root Directory to `ai-backend`.
-2. Vercel sends an OIDC token in the `x-vercel-oidc-token` header for each function invocation; the handler uses it to authenticate with AI Gateway. For local development, use a linked Vercel project with `vercel env pull`, or set an `AI_GATEWAY_API_KEY` in an uncommitted local environment file.
+2. Add `GEMINI_API_KEY` as a Sensitive environment variable in Vercel for Production (and Preview if needed), then redeploy. Never put the key in a frontend file or commit it to Git.
 3. Deploy, then set the `/api/ask-company` endpoint in each frontend's `ai-config.js`.
 
 ## Endpoint
@@ -27,6 +27,6 @@ This directory is deployed as a separate Vercel project with Root Directory set 
 }
 ```
 
-`GET /api/ask-company` reports whether Gateway authentication is available without exposing a token. `POST` uses a free-eligible text model plus server-side Parallel Search, constrained to `nseindia.com` and `bseindia.com`, and returns an answer with validated HTTPS citations. The endpoint does not receive saved portfolio, watchlist, network-profile, or market-price data.
+`GET /api/ask-company` reports whether the Gemini API key is configured without exposing it. `POST` uses Gemini 2.5 Flash with Google Search grounding and returns validated HTTPS citations from `nseindia.com` or `bseindia.com`. Google Search can return other domains, but those citations are excluded; if no official exchange source is found, the endpoint returns a no-verification message. The endpoint does not receive saved portfolio, watchlist, network-profile, or market-price data.
 
 An in-memory per-IP throttle is best-effort because serverless instances do not share memory. Before broader public use, replace it with a shared rate-limit store or platform firewall. Gateway's free-tier model rate limits also apply.
