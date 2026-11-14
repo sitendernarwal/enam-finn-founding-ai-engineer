@@ -2,9 +2,10 @@
 
 | Requirement | Status | Evidence / remaining work |
 |---|---|---|
-| Mobile-first working prototype | Built and deployed; 390 px responsive browser check completed | index.html, styles.css, analysis.js, and enhancements files implement Push, Pull, and Network demo flows. Live demo: https://sitendernarwal.github.io/enam-finn-founding-ai-engineer/. Browser preview confirmed bottom navigation, theme toggle, simulated chart, and no horizontal overflow; this was not a physical-device test. |
+| Mobile-first working prototype | Built and deployed; previous screens checked at 390 px | index.html, analysis.js, portfolio.js, and styles implement Push, Pull, Network, Portfolio, and Watchlist. New views pass syntax, route, ID, and local-asset checks; a fresh phone visual review of these views is pending. Live demo: https://sitendernarwal.github.io/enam-finn-founding-ai-engineer/. |
 | Push, Pull, and Network workflows | Prototype complete | Network profiles and events are synthetic; the Network appears in an alert and the research flow. |
-| Mock portfolio of 15–20 listed companies | Present | 16 tickers are in the watchlist. Six have illustrative research figures; ten are placeholders. |
+| Mock portfolio of 15–20 listed companies | Present | The Portfolio view lists 16 tracked companies. Six have illustrative research figures; ten remain blank until sourced. It does not invent position quantities or returns. |
+| Portfolio and watchlist navigation | Complete | Portfolio search, company-to-research links, add/remove watchlist actions, and browser-local persistence are available on desktop and phone. |
 | 3–5 ad-hoc research companies outside portfolio | Present as source-only entries | Five additional companies are searchable. Their financial facts are deliberately blank until primary sources are connected. |
 | Generalize to any NSE ticker | Partial | Enter a ticker to open a source-discovery research view. Live quote, filing ingestion, and fundamentals are not connected. |
 | Market data, filings, fundamentals, network profiles | Partial | Sample alerts and illustrative values are shown; no source ingestion runs. Network data is synthetic. |
