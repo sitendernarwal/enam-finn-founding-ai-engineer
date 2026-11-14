@@ -59,7 +59,9 @@ html[data-theme="dark"] .empty-state {
   color: var(--ink);
 }
 html[data-theme="dark"] .sidebar { background-color: rgba(18, 23, 30, .86); }
-html[data-theme="dark"] .topbar { background-color: rgba(17, 22, 29, .74); }
+html[data-theme="dark"] .market-strip { background-image: linear-gradient(120deg, rgba(25, 32, 39, .96), rgba(23, 36, 37, .93)); }
+html[data-theme="dark"] .search-box { background-image: linear-gradient(120deg, rgba(25, 32, 39, .94), rgba(22, 31, 36, .90)); }
+html[data-theme="dark"] .topbar { background-color: rgba(17, 22, 29, .74); background-image: linear-gradient(120deg, rgba(17, 22, 29, .96), rgba(22, 31, 37, .92)); }
 html[data-theme="dark"] .brand,
 html[data-theme="dark"] .crumb b,
 html[data-theme="dark"] h1,
