@@ -455,3 +455,18 @@ html[data-theme="dark"] .revenue-period { background: rgba(255,255,255,.045); bo
   .revenue-period b { font-size: 10px; }
   .theme-toggle { min-height: 40px; }
 }
+html[data-theme="dark"] .sidebar {
+  background-image: linear-gradient(155deg, rgba(20, 27, 34, .97), rgba(19, 30, 35, .95));
+}
+html[data-theme="dark"] .portfolio-mini {
+  background-color: rgba(24, 31, 39, .84);
+  background-image: linear-gradient(145deg, rgba(29, 38, 46, .94), rgba(17, 24, 31, .90));
+  border-color: rgba(215, 231, 224, .13);
+}
+html[data-theme="dark"] .portfolio-mini .mini-top,
+html[data-theme="dark"] .portfolio-mini .mini-foot { color: #a5b3be; }
+html[data-theme="dark"] .portfolio-mini .mini-top span:last-child {
+  background: rgba(255, 255, 255, .08);
+  color: #c8d3dc;
+}
+html[data-theme="dark"] .portfolio-mini .mini-foot span { color: #93a1ac; }
