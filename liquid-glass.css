@@ -424,14 +424,20 @@ html[data-theme="light"] :is(.up,.positive,.signal-value.up) { color: #176c4b; }
 html[data-theme="light"] :is(.down,.negative,.signal-value.down) { color: #a83f36; }
 html[data-theme="light"] .orbit-node { color: #142c33; }
 html[data-theme="light"] .network-hero-glass {
-  border-color: rgba(255, 255, 255, .62);
-  background: linear-gradient(118deg, rgba(27, 81, 61, .94), rgba(36, 66, 94, .92) 55%, rgba(76, 57, 104, .90));
-  -webkit-backdrop-filter: blur(24px) saturate(155%);
-  backdrop-filter: blur(24px) saturate(155%);
+  color: var(--ink);
+  border-color: var(--line);
+  background: linear-gradient(118deg, #e2f1eb, #e7eef4 55%, #efecf6);
 }
-html[data-theme="light"] .network-hero-glass h2 { color: #f7fbff; }
-html[data-theme="light"] .network-hero-glass .eyebrow { color: #b8f1d0; }
-html[data-theme="light"] .network-hero-glass p { color: #e5edf4; }
+html[data-theme="light"] .network-hero-glass h2 { color: var(--ink); }
+html[data-theme="light"] .network-hero-glass :is(.eyebrow, p) { color: var(--muted); }
+
+/* Keep light mode overlays on a light surface so they can use the same text colors. */
+html[data-theme="light"] :is(.modal, .toast) {
+  color: var(--ink);
+  background: var(--white);
+  border-color: var(--line);
+}
+html[data-theme="light"] .modal :is(p, li, .modal-close) { color: var(--muted); }
 
 /* Floating lens surfaces: a brighter curved rim makes the refraction visible without
    putting a blur layer over analytical cards or reducing text contrast. */
