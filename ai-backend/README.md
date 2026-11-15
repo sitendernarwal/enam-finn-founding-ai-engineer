@@ -31,3 +31,9 @@ This directory is deployed as a separate Vercel project with Root Directory set 
 `GET /api/ask-company` reports whether the Gemini API key is configured without exposing it. `POST` retrieves recent NSE corporate-announcement metadata for the supplied symbol and asks Gemini 3.5 Flash-Lite to summarize only those records. Validated HTTPS exchange links are returned so users can inspect the original documents. The endpoint does not receive saved portfolio, watchlist, network-profile, or market-price data and does not use AI for calculations.
 
 The per-IP throttle is in-memory and best-effort because serverless instances do not share memory. Before broader public use, replace it with a shared rate-limit store or platform firewall. Google free-tier quotas and the NSE website's availability also apply.
+
+## Live market data proxy
+
+`GET /api/market-data?view=overview` requests NSE index values, gainers, losers and historical NIFTY 50 closes. `GET /api/market-data?view=company&symbol=HDFCBANK` returns an official quote, up to the NSE history tool's supported range of daily prices, and recent corporate-announcement metadata. `GET /api/market-data?view=search&q=HDFC` searches NSE-listed equities. Responses are briefly cached to limit repeated MCP calls; the endpoint does not invent fallback values.
+
+NSE describes intraday market data as delayed by 1–3 minutes and the bhavcopy history as end-of-day data. Its page states the MCP data is for information and learning and is not for trading, investment advice or commercial products. This academic prototype retains those limits in its UI. See [NSE MCP](https://www.nseindia.in/nse-mcp).
