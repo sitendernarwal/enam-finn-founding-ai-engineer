@@ -92,7 +92,7 @@ function findTool(tools, candidates) {
   return null;
 }
 
-function buildArguments(tool, { symbol, query, index }) {
+function buildArguments(tool, { symbol, query, index, direction, date, limit }) {
   const properties = tool?.inputSchema?.properties || {};
   const required = tool?.inputSchema?.required || [];
   const args = {};
@@ -107,6 +107,11 @@ function buildArguments(tool, { symbol, query, index }) {
     if (symbol && /(symbol|ticker|stockcode|securitycode)/.test(normalized)) args[key] = descriptor?.type === "array" ? [symbol] : symbol;
     else if (index && /index/.test(normalized)) args[key] = index;
     else if (query && /(query|search|company|name)/.test(normalized)) args[key] = query;
+    else if (date && /^(date|tradedate|sessiondate|asofdate)$/.test(normalized)) args[key] = date;
+    else if (direction && /(direction|movertype|gainerloser)/.test(normalized)) {
+      args[key] = descriptor?.enum?.find((value) => normalize(value) === normalize(direction)) || direction;
+    }
+    else if (limit != null && /^(limit|count|pagesize|maxrecords)$/.test(normalized)) args[key] = limit;
     else if (/(start|from).*(date|time)|^(fromdate|startdate)$/.test(normalized)) args[key] = dateValue("from");
     else if (/(end|to).*(date|time)|^(todate|enddate)$/.test(normalized)) args[key] = dateValue("to");
     else if (/^(period|range|duration|lookback)$/.test(normalized)) args[key] = descriptor?.enum?.find((value) => ["3M", "90D", "3MONTHS", "1Y"].includes(String(value).toUpperCase().replace(/[^A-Z0-9]/g, ""))) || descriptor?.enum?.[0] || "3M";
@@ -137,7 +142,7 @@ async function callTool(endpoint, tool, input) {
   const args = buildArguments(tool, input);
   const response = await rpcPost(endpoint, input.sessionId, {
     jsonrpc: "2.0",
-    id: 3,
+    id: input.id || 3,
     method: "tools/call",
     params: { name: tool.name, arguments: args }
   }, input.signal);
@@ -244,12 +249,29 @@ async function getOverview() {
     return result;
   }).then(async (result) => {
     try {
-      result.history = await withMcp(NSE_EOD_MCP, async ({ tools, sessionId, signal }) => {
+      const historyPayload = await withMcp(NSE_EOD_MCP, async ({ tools, sessionId, signal }) => {
         const historyTool = findTool(tools, ["get_index_history"]);
-        if (!historyTool) return null;
-        return callTool(NSE_EOD_MCP, historyTool, { index: "NIFTY 50", sessionId, signal });
+        const topMoversTool = findTool(tools, ["get_top_movers"]);
+        const [history, bankHistory] = historyTool ? await Promise.all([
+          callTool(NSE_EOD_MCP, historyTool, { index: "NIFTY 50", sessionId, signal, id: 3 }).catch(() => null),
+          callTool(NSE_EOD_MCP, historyTool, { index: "NIFTY BANK", sessionId, signal, id: 4 }).catch(() => null)
+        ]) : [null, null];
+        const latestRow = listFrom(history).at(-1);
+        const sessionDate = String(latestRow?.date || latestRow?.tradeDate || latestRow?.tradingDate || "");
+        let eodMovers = null;
+        if (topMoversTool && sessionDate && (!listFrom(result.gainers).length || !listFrom(result.losers).length)) {
+          const [gainers, losers] = await Promise.all([
+            callTool(NSE_EOD_MCP, topMoversTool, { date: sessionDate, direction: "gainers", limit: 5, sessionId, signal, id: 5 }).catch(() => null),
+            callTool(NSE_EOD_MCP, topMoversTool, { date: sessionDate, direction: "losers", limit: 5, sessionId, signal, id: 6 }).catch(() => null)
+          ]);
+          eodMovers = { date: sessionDate, gainers, losers, source: "https://www.nseindia.in/nse-mcp" };
+        }
+        return { history, bankHistory, eodMovers };
       });
-    } catch { result.history = null; }
+      result.history = historyPayload?.history || null;
+      result.bankHistory = historyPayload?.bankHistory || null;
+      result.eodMovers = historyPayload?.eodMovers || null;
+    } catch { result.history = null; result.bankHistory = null; result.eodMovers = null; }
     return result;
   });
 }
