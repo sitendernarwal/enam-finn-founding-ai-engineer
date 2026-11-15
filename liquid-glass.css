@@ -56,7 +56,7 @@ html[data-theme] {
 }
 
 html, body { min-height: 100%; }
-html { background: var(--paper); scroll-padding-top: 84px; }
+html { background: var(--paper); scroll-behavior: auto; scroll-padding-top: 84px; }
 html[data-theme] body {
   min-width: 0;
   color: var(--ink);
@@ -66,6 +66,8 @@ html[data-theme] body {
 .shell { min-height: 100svh; }
 .main { margin-left: 242px; min-width: 0; }
 .content { max-width: 1376px; padding: 34px clamp(20px, 3.5vw, 48px) 44px; }
+.view.active { animation: finn-view-enter .15s ease-out both; }
+@keyframes finn-view-enter { from { opacity: .94; } to { opacity: 1; } }
 
 html[data-theme] :is(.sidebar, .topbar) {
   border: 1px solid var(--glass-edge);
@@ -157,6 +159,8 @@ html[data-theme] :is(.market-strip, .market-chart, .panel, .feed-card, .portfoli
 }
 .market-strip { min-height: 94px; gap: 12px; border-radius: 16px; }
 html[data-theme] .market-strip { -webkit-backdrop-filter: none; backdrop-filter: none; }
+.market-strip::before, .search-box::before { display: none; }
+.market-strip > div:not(.strip-note) { min-width: 0; }
 .market-strip b { font-size: clamp(15px, 1.7vw, 21px); }
 html[data-theme] .market-strip .market-label { font-size: 11px; letter-spacing: .015em; }
 .market-strip .market-move, .market-strip .market-note, .market-strip .strip-note { font-size: 11px; }
@@ -164,6 +168,7 @@ html[data-theme] .market-strip .market-label { font-size: 11px; letter-spacing: 
 .market-chart { min-height: 110px; }
 .chart-heading h2, .chart-heading h3 { font-size: 19px; }
 .price-chart { max-width: 100%; }
+.price-chart.down { --glass-chart: var(--red); }
 .price-chart-top, .chart-foot, .chart-range small { font-size: 11px; }
 .chart-range b { font-size: 13px; }
 .chart-foot { flex-wrap: wrap; }
@@ -453,6 +458,7 @@ html[data-theme] .tiny-count { background: var(--surface-raised); color: var(--m
 .company-chip b { overflow-wrap: anywhere; }
 .company-chip small { font-size: 11px; }
 .search-status { font-size: 12px; color: var(--muted); }
+#company-chips .search-status { flex: 1 0 100%; }
 .search-status[data-kind="error"] { color: var(--red); }
 .research-placeholder, .portfolio-empty {
   min-height: 196px;
@@ -564,7 +570,7 @@ html[data-theme] .portfolio-card-metrics b { font-size: clamp(15px, 2vw, 19px); 
 .signal-value { align-self: start; border-radius: 6px; padding: 4px 7px; }
 .signal-source { text-decoration: underline; text-underline-offset: 3px; }
 
-html[data-theme] .network-hero-glass { min-height: 216px; border-color: var(--line); background: var(--surface); box-shadow: var(--card-shadow); }
+html[data-theme] .network-hero-glass { min-height: 216px; border-color: var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--card-shadow); }
 .network-hero-glass::before, .network-hero-glass::after { display: none; }
 html[data-theme] .network-hero-glass h2 { color: var(--ink); }
 html[data-theme] .network-hero-glass :is(.eyebrow, p) { color: var(--muted); }
@@ -652,7 +658,7 @@ html[data-theme] .finn-ai-panel { background-image: none; }
   .page-heading .source-note { display: none; }
   .portfolio-stat small, .watchlist-summary-card small, .chart-range small { font-size: 10px; }
   .chart-range b { font-size: 11px; }
-  .network-insights { grid-template-columns: minmax(0, 1fr); }
+  .network-insight { padding: 9px 8px; }
   .network-context-top { flex-wrap: wrap; }
 }
 @media (prefers-reduced-transparency: reduce) {

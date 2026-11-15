@@ -81,6 +81,7 @@
   function navigate(view, options = {}) {
     const buttons = $$(".nav-item");
     if (!buttons.some((button) => button.dataset.view === view) || !document.getElementById(`view-${view}`)) return;
+    const changed = state.view !== view;
     state.view = view;
     buttons.forEach((button) => {
       const current = button.dataset.view === view;
@@ -95,7 +96,7 @@
     if (view === "portfolio") renderPortfolio();
     if (view === "watchlist") renderWatchlist();
     if (view === "signals") window.dispatchEvent(new CustomEvent("finn:signals-view-opened"));
-    window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    if (changed) window.scrollTo(0, 0);
   }
   window.navigate = navigate;
   window.FINN_LIVE = {
@@ -349,13 +350,15 @@
     const company = state.companies.get(entry.symbol) || entry;
     const quote = company.quoteData || { price: null, change: null };
     const priceLabel = quote.isClose ? "Latest close" : "Latest NSE quote";
+    const priceValue = quote.price != null ? `₹${formatNumber(quote.price)}`
+      : company.error || company.updatedAt ? "Unavailable" : "Pending";
     const freshnessLabel = quote.isClose ? `End of day · ${company.historyAsOf || "date not provided"}`
       : company.updatedAt ? marketStamp(company.updatedAt) : company.error ? "NSE quote unavailable" : "Awaiting NSE data";
     const isTracked = state.portfolio.some((item) => item.symbol === entry.symbol);
     const isWatched = state.watchlist.some((item) => item.symbol === entry.symbol);
     const remove = mode === "watchlist" ? `<button class="watch-action" type="button" data-watch-action="remove" data-symbol="${esc(entry.symbol)}" aria-label="Remove ${esc(entry.symbol)} from watchlist">Remove</button>` : "";
     const watch = mode === "portfolio" ? `<button class="text-btn" type="button" data-card-action="${isWatched ? "unwatch" : "watch"}" data-symbol="${esc(entry.symbol)}">${isWatched ? "Unwatch" : "Watch"}</button>` : "";
-    return `<article class="portfolio-card panel"><div class="portfolio-card-head"><div class="portfolio-company-id"><span class="company-logo">${esc(company.short || entry.symbol.slice(0, 5))}</span><div><h3>${esc(company.name || entry.name || entry.symbol)}</h3><p>${esc(entry.symbol)} · ${esc(company.sector || "NSE listed equity")}</p></div></div>${remove}</div><div class="portfolio-card-metrics"><div><span>${esc(priceLabel)}</span><b>${quote.price == null ? "Unavailable" : `₹${formatNumber(quote.price)}`}</b></div><div><span>${quote.isClose ? "Change vs previous close" : "Day change"}</span><b class="${moveTone(quote.change)}">${formatPercent(quote.change)}</b></div></div><div class="portfolio-card-footer"><span class="data-status">${esc(freshnessLabel)}</span><span class="card-actions"><button class="text-btn" data-card-action="${isTracked ? "untrack" : "track"}" data-symbol="${esc(entry.symbol)}">${isTracked ? "Untrack" : "Track"}</button>${watch}<button class="text-btn" data-open-company="${esc(entry.symbol)}">Research →</button></span></div></article>`;
+    return `<article class="portfolio-card panel"><div class="portfolio-card-head"><div class="portfolio-company-id"><span class="company-logo" aria-hidden="true">${esc(company.short || entry.symbol.slice(0, 5))}</span><div><h3>${esc(company.name || entry.name || entry.symbol)}</h3><p>${esc(entry.symbol)} · ${esc(company.sector || "NSE listed equity")}</p></div></div>${remove}</div><div class="portfolio-card-metrics"><div><span>${esc(priceLabel)}</span><b>${priceValue}</b></div><div><span>${quote.isClose ? "Change vs previous close" : "Day change"}</span><b class="${moveTone(quote.change)}">${formatPercent(quote.change)}</b></div></div><div class="portfolio-card-footer"><span class="data-status">${esc(freshnessLabel)}</span><span class="card-actions"><button class="text-btn" data-card-action="${isTracked ? "untrack" : "track"}" data-symbol="${esc(entry.symbol)}">${isTracked ? "Untrack" : "Track"}</button>${watch}<button class="text-btn" data-open-company="${esc(entry.symbol)}">Research →</button></span></div></article>`;
   }
   function emptyList(title, copy, actionLabel = "Find a company") {
     return `<div class="portfolio-empty panel"><span class="empty-star" aria-hidden="true">☆</span><h2>${esc(title)}</h2><p>${esc(copy)}</p><button class="primary-btn" type="button" data-go-view="research">${esc(actionLabel)} <span aria-hidden="true">→</span></button></div>`;
@@ -414,7 +417,13 @@
       state.search = items;
       state.search.forEach((item) => state.companies.set(item.symbol, { ...state.companies.get(item.symbol), ...item, short: item.symbol.slice(0, 5) }));
       renderChips();
-      if (!state.search.length && region) region.innerHTML = '<span class="search-status">No matching NSE listing. Try another name or enter an exact ticker.</span>';
+      if (!state.search.length && region) {
+        const ticker = trimmed.toUpperCase().replace(/\.NS$/, "");
+        const lookup = /^[A-Z0-9&.-]{1,24}$/.test(ticker)
+          ? `<button type="button" class="quiet-btn" data-open-company="${esc(ticker)}">Look up ticker ${esc(ticker)}</button>`
+          : "";
+        region.innerHTML = `<span class="search-status">No matching NSE listing. Try another name or look up a ticker directly.</span>${lookup}`;
+      }
     } catch (error) {
       if (!isCurrentSearch()) return;
       state.search = [];
@@ -452,17 +461,16 @@
     symbol = String(symbol || "").toUpperCase();
     if (!/^[A-Z0-9&.-]{1,24}$/.test(symbol)) return;
     const current = state.companies.get(symbol) || { symbol, name: suggestedName || symbol, short: symbol.slice(0, 5), sector: "NSE listed equity" };
-    if (current.loading) return current.loading;
-    if (current.loadedAt && Date.now() - current.loadedAt < 45_000) {
-      if (open) { state.selected = current; renderResearch(); }
-      return current;
+    const cached = current.loadedAt && Date.now() - current.loadedAt < 45_000;
+    if (open) {
+      state.selected = current;
+      if (cached) renderResearch();
+      else $("#research-card").innerHTML = '<div class="panel research-placeholder" aria-busy="true"><span class="empty-star" aria-hidden="true">◌</span><h2>Loading company research</h2><p>Requesting the latest NSE quote, price history and filings.</p></div>';
+      navigate("research");
     }
+    if (current.loading) return current.loading;
+    if (cached) return current;
     current.loading = (async () => {
-      if (open) {
-        state.selected = current;
-        $("#research-card").innerHTML = '<div class="panel research-placeholder" aria-busy="true"><span class="empty-star" aria-hidden="true">◌</span><h2>Loading company research</h2><p>Requesting the latest NSE quote, price history and filings.</p></div>';
-        navigate("research");
-      }
       try {
         const payload = await request({ view: "company", symbol });
         const liveQuote = quoteOf(payload.quote);
@@ -480,7 +488,7 @@
         const quote = liveQuote.price != null ? { ...liveQuote, isClose: false } : { ...closeQuote, isClose: closeQuote.price != null };
         const updated = { ...current, symbol, name: String(field(payload.quote, ["companyName", "company", "securityName", "name"]) || current.name || symbol), quoteData: quote, rawQuote: payload.quote, history, announcements: payload.announcements || { items: [] }, updatedAt: payload.updatedAt || new Date().toISOString(), source: payload.source, freshness: payload.freshness, historyAsOf: String(field(lastHistoryRow, ["date", "tradeDate", "tradingDate"]) || ""), loadedAt: Date.now(), loading: null };
         state.companies.set(symbol, updated);
-        if (state.selected?.symbol === symbol || open) { state.selected = updated; renderResearch(); }
+        if (state.selected?.symbol === symbol) { state.selected = updated; renderResearch(); }
         window.dispatchEvent(new CustomEvent("finn:company-updated", { detail: updated }));
         if (state.view === "portfolio") renderPortfolio();
         if (state.view === "watchlist") renderWatchlist();
@@ -490,7 +498,7 @@
         current.error = error.message;
         state.companies.set(symbol, current);
         window.dispatchEvent(new CustomEvent("finn:company-updated", { detail: current }));
-        if (open) {
+        if (state.selected?.symbol === symbol) {
           state.selected = current;
           $("#research-card").innerHTML = `<div class="panel research-placeholder research-error"><h2>Company data is unavailable</h2><p>${esc(error.message)}</p><button type="button" class="primary-btn" data-retry-company="${esc(symbol)}">Try again</button></div>`;
         }
@@ -545,7 +553,10 @@
       const symbolButton = target.closest("[data-symbol]");
       if (symbolButton?.dataset.symbol) {
         if (symbolButton.closest(".company-chips")) ensureCompany(symbolButton.dataset.symbol, symbolButton.querySelector("b")?.textContent || symbolButton.dataset.symbol, true);
-        else if (symbolButton.closest(".feed-card")) ensureCompany(symbolButton.dataset.symbol, symbolButton.dataset.symbol, true);
+        else if (symbolButton.closest(".feed-card")) {
+          const name = symbolButton.querySelector(".feed-title")?.textContent || symbolButton.dataset.symbol;
+          ensureCompany(symbolButton.dataset.symbol, name, true);
+        }
       }
       const openButton = target.closest("[data-open-company]");
       if (openButton) ensureCompany(openButton.dataset.openCompany, openButton.dataset.openCompany, true);
