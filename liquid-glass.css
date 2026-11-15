@@ -385,3 +385,41 @@ html[data-glass-refraction="supported"] .topbar[data-glass="capsule"] {
 @media (prefers-reduced-motion: reduce) {
   *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Accessible contrast pass: keep the translucent materials, strengthen every text tier. */
+:root,
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #f4f7fb;
+  --muted: #c2cdd7;
+  --line: rgba(226, 237, 247, .19);
+  --link: #83e8b5;
+}
+html[data-theme="light"] {
+  color-scheme: light;
+  --ink: #17242c;
+  --muted: #4d5c66;
+  --line: rgba(32, 51, 62, .17);
+  --green: #176c4b;
+  --red: #a83f36;
+  --link: #146a47;
+}
+body { color: var(--ink); }
+html[data-theme="dark"] :is(.workspace-label,.eyebrow,.crumb,.subhead,.muted,.market-label,.market-note,.strip-note,.source-label,.source-note,.disclaimer,.feed-copy,.company-title p,.research-section p,.source-item small,.card-meta-bottom,.card-right small,.search-helper,.chart-foot,.chart-range small,.metric span,.network-toolbar p,.network-insight span,.network-insight small,.push-digest-head p,.push-threshold,.push-summary,.push-list .empty-state,.network-context-top p,.network-context-person small,.network-context-person p,.person-head small,.connection,.person-overlap,.person-reconnect,.privacy-callout p,.signals-hero p,.signals-status,.signals-control small,.threshold-input span,.signals-section-head p,.signal-main p,.signal-main > small,.signal-network-note,.analysis-note,.empty-state) {
+  color: var(--muted);
+}
+html[data-theme="light"] :is(.workspace-label,.eyebrow,.crumb,.subhead,.muted,.market-label,.market-note,.strip-note,.source-label,.source-note,.disclaimer,.feed-copy,.company-title p,.research-section p,.source-item small,.card-meta-bottom,.card-right small,.search-helper,.chart-foot,.chart-range small,.metric span,.network-toolbar p,.network-insight span,.network-insight small,.push-digest-head p,.push-threshold,.push-summary,.push-list .empty-state,.network-context-top p,.network-context-person small,.network-context-person p,.person-head small,.connection,.person-overlap,.person-reconnect,.privacy-callout p,.signals-hero p,.signals-status,.signals-control small,.threshold-input span,.signals-section-head p,.signal-main p,.signal-main > small,.signal-network-note,.analysis-note,.empty-state) {
+  color: var(--muted);
+}
+html[data-theme] :is(.disclaimer a,.source-item a,.chart-foot a,.analysis-note a,.signal-source,.signal-main a,.source-note span,.text-btn,.person-link) {
+  color: var(--link);
+}
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder { color: #aebbc7; opacity: 1; }
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder { color: #5b6872; opacity: 1; }
+html[data-theme="light"] .person-flag { color: #145b3d; border-color: rgba(20, 91, 61, .22); background: #e2f3e9; }
+html[data-theme="dark"] .person-flag { color: #a7f0c7; border-color: rgba(167, 240, 199, .24); background: rgba(84, 181, 128, .16); }
+html[data-theme="light"] :is(.up,.positive,.signal-value.up) { color: #176c4b; }
+html[data-theme="light"] :is(.down,.negative,.signal-value.down) { color: #a83f36; }
+html[data-theme="light"] .orbit-node { color: #142c33; }
