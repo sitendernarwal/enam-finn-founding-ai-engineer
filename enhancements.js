@@ -1,142 +1,93 @@
-/* Small client-side enhancements for theme, phone navigation, and labelled demo market data. */
+/* Theme toggle and progressive liquid-glass refraction enhancement. */
 (() => {
   "use strict";
-
   const root = document.documentElement;
-  const $ = (selector, scope = document) => scope.querySelector(selector);
-  const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
-
-  let theme = "dark";
-  try { theme = localStorage.getItem("finn-theme") === "light" ? "light" : "dark"; } catch {}
+  const themeButton = document.querySelector(".theme-toggle");
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  let theme = root.dataset.theme === "light" ? "light" : "dark";
   root.dataset.theme = theme;
-
-  const actions = $(".top-actions");
-  if (actions) {
-    const toggle = document.createElement("button");
-    toggle.type = "button";
-    toggle.className = "theme-toggle";
-    toggle.setAttribute("aria-pressed", String(theme === "dark"));
-    const profileButton = $(".top-avatar", actions);
-    actions.insertBefore(toggle, profileButton || null);
-
-    const paintToggle = () => {
-      const lightModeNext = root.dataset.theme === "dark";
-      toggle.innerHTML = '<span class="theme-glyph" aria-hidden="true">' + (lightModeNext ? "☼" : "☾") + '</span><span>' + (lightModeNext ? "Light" : "Dark") + '</span>';
-      toggle.setAttribute("aria-label", "Switch to " + (lightModeNext ? "light" : "dark") + " mode");
-      toggle.title = "Switch to " + (lightModeNext ? "light" : "dark") + " mode";
-      toggle.setAttribute("aria-pressed", String(root.dataset.theme === "dark"));
-    };
-    toggle.addEventListener("click", () => {
-      root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
-      try { localStorage.setItem("finn-theme", root.dataset.theme); } catch {}
-      const meta = $('meta[name="theme-color"]');
-      if (meta) meta.content = root.dataset.theme === "dark" ? "#0d1117" : "#f6f7f4";
-      paintToggle();
-    });
-    paintToggle();
-  }
-
-  const navItems = $$(".nav-item");
-  const nav = navItems[0]?.closest(".nav");
-  if (nav) nav.style.setProperty("--nav-count", String(navItems.length));
-  navItems.forEach((button) => {
-    Array.from(button.childNodes).forEach((node) => {
-      if (node.nodeType !== Node.TEXT_NODE || !node.textContent.trim()) return;
-      const label = document.createElement("span");
-      label.className = "nav-label";
-      label.textContent = node.textContent.trim();
-      button.replaceChild(label, node);
-    });
+  const paintTheme = () => {
+    if (!themeButton) return;
+    const next = theme === "dark" ? "light" : "dark";
+    themeButton.innerHTML = `<span aria-hidden="true">${next === "light" ? "☼" : "☾"}</span><span>${next === "light" ? "Light" : "Dark"}</span>`;
+    themeButton.setAttribute("aria-label", `Switch to ${next} mode`);
+    themeButton.setAttribute("aria-pressed", String(theme === "dark"));
+  };
+  themeButton?.addEventListener("click", () => {
+    theme = theme === "dark" ? "light" : "dark";
+    root.dataset.theme = theme;
+    try { localStorage.setItem("finn-theme", theme); } catch {}
+    if (themeMeta) themeMeta.content = theme === "dark" ? "#0d1117" : "#f6f7f4";
+    paintTheme();
   });
+  paintTheme();
 
-  const strip = $(".market-strip");
-  if (!strip || !strip.parentNode) return;
-
-  const panel = document.createElement("section");
-  panel.className = "market-pulse";
-  panel.setAttribute("aria-label", "Simulated market movement");
-  panel.innerHTML =
-    '<div class="pulse-head"><div><div class="pulse-label"><i class="pulse-live"></i> Simulated NIFTY 50 pulse</div>' +
-    '<div class="pulse-value-row"><strong class="pulse-value" id="pulse-value">—</strong><span class="pulse-change" id="pulse-change">—</span></div></div>' +
-    '<div class="pulse-caption">Illustrative demo series<br>refreshes every 8 seconds</div></div>' +
-    '<svg class="pulse-chart" viewBox="0 0 1000 220" preserveAspectRatio="none" role="img" aria-label="Simulated NIFTY 50 index chart">' +
-    '<defs><linearGradient id="pulseGradient" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="var(--glass-chart)" stop-opacity=".72"/><stop offset="100%" stop-color="var(--glass-chart)" stop-opacity="0"/></linearGradient></defs>' +
-    '<path class="pulse-grid" d="M0 42H1000 M0 94H1000 M0 146H1000 M0 198H1000"/>' +
-    '<path class="pulse-area" id="pulse-area"/><path class="pulse-line" id="pulse-line" d=""/><circle class="pulse-last" id="pulse-last" r="5" cx="0" cy="0"/></svg>' +
-    '<div class="pulse-foot"><span>Recent simulated ticks</span><span id="pulse-updated">Starting simulation…</span></div>';
-  strip.insertAdjacentElement("afterend", panel);
-
-  const baseNifty = 25842.30;
-  const baseSensex = 84112.65;
-  const points = [];
-  for (let i = 0; i < 40; i += 1) {
-    const drift = Math.sin(i * 0.34) * 36 + Math.sin(i * 0.11) * 23 + (Math.random() - 0.5) * 16;
-    points.push(baseNifty + drift);
-  }
-  const initial = points[0];
-  const formatIndex = (value) => new Intl.NumberFormat("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
-  const formatClock = () => new Intl.DateTimeFormat("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Asia/Kolkata" }).format(new Date());
-
-  function renderPulse() {
-    const min = Math.min.apply(null, points);
-    const max = Math.max.apply(null, points);
-    const spread = Math.max(max - min, 1);
-    const coords = points.map((value, index) => {
-      const x = 12 + (index / (points.length - 1)) * 976;
-      const y = 190 - ((value - min) / spread) * 152;
-      return [x, y];
-    });
-    const line = coords.map((point, index) => (index ? "L " : "M ") + point[0].toFixed(1) + " " + point[1].toFixed(1)).join(" ");
-    const area = line + " L " + coords[coords.length - 1][0].toFixed(1) + " 210 L " + coords[0][0].toFixed(1) + " 210 Z";
-    $("#pulse-line").setAttribute("d", line);
-    $("#pulse-area").setAttribute("d", area);
-    $("#pulse-last").setAttribute("cx", coords[coords.length - 1][0].toFixed(1));
-    $("#pulse-last").setAttribute("cy", coords[coords.length - 1][1].toFixed(1));
-
-    const current = points[points.length - 1];
-    const change = ((current / initial) - 1) * 100;
-    const changeText = (change >= 0 ? "+" : "") + change.toFixed(2) + "%";
-    $("#pulse-value").textContent = formatIndex(current);
-    $("#pulse-change").textContent = changeText;
-    $("#pulse-change").classList.toggle("is-down", change < 0);
-    $(".pulse-chart").setAttribute("aria-label", "Simulated NIFTY 50 at " + formatIndex(current) + ", " + changeText + " since the first displayed point.");
-
-    const marketItems = $$(".market-strip > div:not(.strip-note)");
-    const nifty = marketItems.find((item) => item.querySelector(".market-label")?.textContent.includes("NIFTY"));
-    const sensex = marketItems.find((item) => item.querySelector(".market-label")?.textContent.includes("SENSEX"));
-    const relativeChange = current / initial;
-    if (nifty) {
-      const value = $("b", nifty);
-      const changeNode = $(".up, .down", nifty);
-      if (value) value.textContent = formatIndex(current);
-      if (changeNode) {
-        changeNode.textContent = changeText;
-        changeNode.classList.toggle("up", change >= 0);
-        changeNode.classList.toggle("down", change < 0);
+  function createPillDisplacementMap(width = 600, height = 180) {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) return "";
+    const image = context.createImageData(width, height);
+    const bezel = 18;
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const distances = [x, width - 1 - x, y, height - 1 - y];
+        let edge = 0;
+        for (let i = 1; i < distances.length; i += 1) if (distances[i] < distances[edge]) edge = i;
+        const distance = Math.max(0, distances[edge]);
+        const t = Math.min(1, distance / bezel);
+        const strength = Math.sin(Math.PI * t) * 0.34;
+        const dx = edge === 0 ? strength : edge === 1 ? -strength : 0;
+        const dy = edge === 2 ? strength : edge === 3 ? -strength : 0;
+        const offset = (y * width + x) * 4;
+        image.data[offset] = Math.max(0, Math.min(255, Math.round(128 + dx * 127)));
+        image.data[offset + 1] = Math.max(0, Math.min(255, Math.round(128 + dy * 127)));
+        image.data[offset + 2] = 128;
+        image.data[offset + 3] = 255;
       }
     }
-    if (sensex) {
-      const value = $("b", sensex);
-      const changeNode = $(".up, .down", sensex);
-      if (value) value.textContent = formatIndex(baseSensex * relativeChange);
-      if (changeNode) {
-        changeNode.textContent = changeText;
-        changeNode.classList.toggle("up", change >= 0);
-        changeNode.classList.toggle("down", change < 0);
-      }
-    }
-    const stamp = $("#pulse-updated");
-    if (stamp) stamp.textContent = "Updated " + formatClock() + " IST";
-    const note = $(".strip-note", strip);
-    if (note) note.innerHTML = 'SIMULATION · <span aria-hidden="true">◷</span> 8 sec';
+    context.putImageData(image, 0, 0);
+    return canvas.toDataURL("image/png");
   }
 
-  renderPulse();
-  window.setInterval(() => {
-    const previous = points[points.length - 1];
-    const noise = (Math.random() - 0.48) * 0.0017;
-    points.push(previous * (1 + noise));
-    points.shift();
-    renderPulse();
-  }, 8000);
+  if (!document.getElementById("finn-glass-filters")) {
+    const svgNS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.id = "finn-glass-filters";
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("width", "0");
+    svg.setAttribute("height", "0");
+    svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
+    const defs = document.createElementNS(svgNS, "defs");
+    const filter = document.createElementNS(svgNS, "filter");
+    filter.id = "finn-liquid-glass";
+    filter.setAttribute("x", "-8%");
+    filter.setAttribute("y", "-18%");
+    filter.setAttribute("width", "116%");
+    filter.setAttribute("height", "136%");
+    filter.setAttribute("color-interpolation-filters", "sRGB");
+    const displacement = document.createElementNS(svgNS, "feImage");
+    displacement.setAttribute("x", "0");
+    displacement.setAttribute("y", "0");
+    displacement.setAttribute("width", "100%");
+    displacement.setAttribute("height", "100%");
+    displacement.setAttribute("preserveAspectRatio", "none");
+    displacement.setAttribute("result", "bezel-map");
+    const map = createPillDisplacementMap();
+    if (map) {
+      displacement.setAttribute("href", map);
+      displacement.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", map);
+    }
+    const refract = document.createElementNS(svgNS, "feDisplacementMap");
+    refract.setAttribute("in", "SourceGraphic");
+    refract.setAttribute("in2", "bezel-map");
+    refract.setAttribute("scale", "18");
+    refract.setAttribute("xChannelSelector", "R");
+    refract.setAttribute("yChannelSelector", "G");
+    filter.append(displacement, refract);
+    defs.append(filter);
+    svg.append(defs);
+    document.body.append(svg);
+  }
 })();
