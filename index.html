@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0d1117">
+  <meta name="theme-color" content="#0b1117">
   <meta name="description" content="FINN — live, source-linked Indian equity research">
   <script>try{document.documentElement.dataset.theme=localStorage.getItem('finn-theme')==='light'?'light':'dark'}catch{document.documentElement.dataset.theme='dark'}</script>
   <title>FINN — Investor intelligence</title>
   <link rel="stylesheet" href="styles.css?v=live-nse-20261115-v2">
   <link rel="stylesheet" href="enhancements.css?v=liquid-glass-20261115-v6">
-  <link rel="stylesheet" href="liquid-glass.css?v=glass-20261115-v10">
+  <link rel="stylesheet" href="liquid-glass.css?v=finn-premium-v1">
 </head>
 <body data-app="founding">
   <div class="shell">
@@ -17,11 +17,11 @@
       <a class="brand" href="#home" aria-label="FINN home"><span class="brand-mark">F</span><span>finn<span class="brand-dot">.</span><small>INVESTOR INTELLIGENCE</small></span></a>
       <div class="workspace-label">WORKSPACE</div>
       <nav class="nav" aria-label="Main navigation">
-        <button class="nav-item active" data-view="home"><span class="nav-icon" aria-hidden="true">◫</span><span class="nav-label">Market</span></button>
-        <button class="nav-item" data-view="research"><span class="nav-icon" aria-hidden="true">⌕</span><span class="nav-label">Research</span></button>
-        <button class="nav-item" data-view="portfolio"><span class="nav-icon" aria-hidden="true">▤</span><span class="nav-label">Portfolio</span></button>
-        <button class="nav-item" data-view="watchlist"><span class="nav-icon" aria-hidden="true">☆</span><span class="nav-label">Watchlist</span><span class="nav-count" id="watchlist-nav-count" hidden>0</span></button>
-        <button class="nav-item" data-view="network"><span class="nav-icon" aria-hidden="true">◎</span><span class="nav-label">Network</span></button>
+        <button class="nav-item active" data-view="home" aria-current="page"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-4 4 2 5-6"/></svg></span><span class="nav-label">Market</span></button>
+        <button class="nav-item" data-view="research"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 5 5"/></svg></span><span class="nav-label">Research</span></button>
+        <button class="nav-item" data-view="portfolio"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M3 12h18M10 12v2h4v-2"/></svg></span><span class="nav-label">Portfolio</span></button>
+        <button class="nav-item" data-view="watchlist"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.8 5.8 6.4.9-4.6 4.5 1.1 6.4-5.7-3-5.7 3 1.1-6.4-4.6-4.5 6.4-.9z"/></svg></span><span class="nav-label">Watchlist</span><span class="nav-count" id="watchlist-nav-count" hidden>0</span></button>
+        <button class="nav-item" data-view="network"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="17" r="2.5"/><circle cx="19" cy="17" r="2.5"/><path d="m10.6 7.3-4.2 7.4m11.2 0-4.2-7.4m-6 9.7h9.2"/></svg></span><span class="nav-label">Network</span></button>
       </nav>
       <div class="sidebar-bottom">
         <div class="portfolio-mini"><div class="mini-top"><span>YOUR WORKSPACE</span><span id="portfolio-mini-count">0</span></div><strong>Tracked companies</strong><div class="mini-foot">Saved on this device <span>Live quotes</span></div></div>
@@ -29,14 +29,14 @@
       </div>
     </aside>
     <main class="main">
-      <header class="topbar"><div class="crumb">FINN <span>/</span> <b id="crumb-current">Market</b></div><div class="top-actions"><span class="demo-pill live-pill"><i></i> NSE MARKET DATA</span><button class="theme-toggle" type="button" aria-label="Switch color theme"></button><button class="avatar avatar-user top-avatar" type="button" data-profile-trigger aria-haspopup="dialog" aria-controls="modal-backdrop" aria-label="Open Sitender profile">S</button></div></header>
+      <header class="topbar"><div class="crumb">FINN <span>/</span> <b id="crumb-current">Market</b></div><div class="top-actions"><span class="demo-pill live-pill"><i></i> NSE market data</span><button class="theme-toggle" type="button" aria-label="Switch color theme"></button><button class="avatar avatar-user top-avatar" type="button" data-profile-trigger aria-haspopup="dialog" aria-controls="modal-backdrop" aria-label="Open Sitender profile">S</button></div></header>
       <div class="content">
         <section class="view active" id="view-home">
-          <div class="page-heading"><div><div class="eyebrow">INDIAN EQUITIES <span class="live-dot"></span></div><h1>Market brief</h1><p class="subhead">Exchange data with source links. Prices may be delayed.</p></div><button class="quiet-btn" id="refresh-btn" type="button">↻ <span>Refresh</span></button></div>
+          <div class="page-heading"><div><div class="eyebrow">Indian equities <span class="live-dot"></span></div><h1>Market brief</h1><p class="subhead">Exchange data with source links. Prices may be delayed.</p></div><button class="quiet-btn" id="refresh-btn" type="button">↻ <span>Refresh</span></button></div>
           <div class="market-strip" id="market-strip" aria-live="polite"><div data-index="NIFTY 50"><span class="market-label">NIFTY 50</span><b>Loading…</b><span class="market-note">NSE</span></div><div data-index="NIFTY BANK"><span class="market-label">NIFTY BANK</span><b>Loading…</b><span class="market-note">NSE</span></div><div><span class="market-label">WATCHLIST</span><b id="watchlist-market-count">0 companies</b><span class="market-note">On this device</span></div><div class="strip-note" id="market-asof">Loading official NSE data…</div></div>
-          <section class="market-chart panel" id="market-chart" aria-label="NIFTY 50 chart"></section>
+          <section class="market-chart panel" id="market-chart" aria-label="NIFTY 50 chart"><div class="empty-state" aria-busy="true">Loading NIFTY 50 price history…</div></section>
           <div class="section-head"><div><h2>Live market movers <span class="tiny-count" id="mover-count">—</span></h2><p>Official NSE gainers and losers · delayed during market hours</p></div><div class="filter-row" role="group" aria-label="Filter market movers"><button class="filter active" data-mover-filter="all" aria-pressed="true">All</button><button class="filter" data-mover-filter="gainers" aria-pressed="false">Gainers</button><button class="filter" data-mover-filter="losers" aria-pressed="false">Losers</button></div></div>
-          <div class="feed" id="feed" aria-live="polite"><div class="panel empty-state">Connecting to the official NSE market feed…</div></div>
+          <div class="feed" id="feed" aria-live="polite"><div class="panel empty-state" aria-busy="true">Connecting to the official NSE market feed…</div></div>
           <section class="push-digest panel" aria-labelledby="push-digest-title">
             <div class="push-digest-head"><div><span class="eyebrow">PUSH · PORTFOLIO + NETWORK</span><h2 id="push-digest-title">What changed, and who can help?</h2><p>Review actual NSE moves and filings alongside clearly marked synthetic network context.</p></div><button class="quiet-btn" id="refresh-push" type="button">↻ <span>Refresh portfolio</span></button></div>
             <div class="push-digest-controls"><label>Price move trigger <span class="push-threshold"><input id="push-threshold" type="number" min="0.1" max="20" step="0.1" value="3" inputmode="decimal"><span>% either direction</span></span></label><label>Filing window<select id="push-window"><option value="24">Last 24 hours</option><option value="168">Last 7 days</option><option value="all">All returned filings</option></select></label></div>
@@ -45,15 +45,15 @@
           <footer class="disclaimer">Market information is delayed by 1–3 minutes during trading hours, for educational and informational use. This prototype is not investment advice. Data: <a href="https://www.nseindia.in/nse-mcp" target="_blank" rel="noopener noreferrer">NSE MCP</a>.</footer>
         </section>
         <section class="view" id="view-research">
-          <div class="page-heading"><div><div class="eyebrow">OFFICIAL EXCHANGE DATA</div><h1>Company research</h1><p class="subhead">Live quote, end-of-day price history and primary disclosures.</p></div><span class="source-note">NSE source links <span>↗</span></span></div>
+          <div class="page-heading"><div><div class="eyebrow">Official exchange data</div><h1>Company research</h1><p class="subhead">Live quote, end-of-day price history and primary disclosures.</p></div><span class="source-note">NSE source links <span>↗</span></span></div>
           <label class="search-box"><span aria-hidden="true">⌕</span><input id="company-search" type="search" placeholder="Search an NSE company or symbol…" autocomplete="off" aria-label="Search NSE companies"><kbd>⌘ K</kbd></label>
           <div class="company-chips" id="company-chips" aria-live="polite"></div>
-          <div id="research-card"><div class="panel research-placeholder"><span class="empty-star" aria-hidden="true">⌕</span><h2>Choose a listed company</h2><p>Search by company name or NSE symbol to load its latest exchange quote, price history and official announcements.</p></div></div>
+          <div id="research-card" aria-live="polite"><div class="panel research-placeholder"><span class="empty-star" aria-hidden="true">⌕</span><h2>Look up a listed company</h2><p>Enter a company name or NSE ticker to view its latest quote, price history and official announcements.</p></div></div>
           <footer class="disclaimer">Intraday quotes may be delayed; historical prices are end-of-day. Financial statements are not included in this exchange market feed. Verify company claims in the linked primary disclosure.</footer>
         </section>
         <section class="view" id="view-network">
-          <div class="page-heading"><div><div class="eyebrow">NETWORK INTELLIGENCE · SYNTHETIC DEMO</div><h1>Your quiet advantage</h1><p class="subhead">Find the people who can add context to a company, a sector, or a new leadership change.</p></div><span class="source-note">Private by design <span>◎</span></span></div>
-          <section class="network-hero network-hero-glass"><div><span class="eyebrow">A SMALL NETWORK, MADE USEFUL</span><h2>Turn a question into the right conversation.</h2><p>Explore a fictional investor network connected to the same companies in this demo portfolio. Every person and relationship below is synthetic.</p><button class="primary-btn" type="button" data-network-focus>Explore people <span>↓</span></button></div><div class="network-orbit" aria-hidden="true"><span class="orbit orbit-a"></span><span class="orbit orbit-b"></span><span class="orbit-center">S</span><span class="orbit-node node-a">A</span><span class="orbit-node node-b">R</span><span class="orbit-node node-c">K</span><span class="orbit-node node-d">M</span></div></section>
+          <div class="page-heading"><div><div class="eyebrow">Network · synthetic demo</div><h1>Your quiet advantage</h1><p class="subhead">Find the people who can add context to a company, a sector, or a new leadership change.</p></div><span class="source-note">Private by design <span>◎</span></span></div>
+          <section class="network-hero network-hero-glass"><div><span class="eyebrow">Research connections</span><h2>Turn a question into the right conversation.</h2><p>Explore a fictional investor network connected to the same companies in this demo portfolio. Every person and relationship below is synthetic.</p><button class="primary-btn" type="button" data-network-focus>Explore people <span>↓</span></button></div><div class="network-orbit" aria-hidden="true"><span class="orbit orbit-a"></span><span class="orbit orbit-b"></span><span class="orbit-center">S</span><span class="orbit-node node-a">A</span><span class="orbit-node node-b">R</span><span class="orbit-node node-c">K</span><span class="orbit-node node-d">M</span></div></section>
           <div class="network-insights" id="network-insights" aria-live="polite"></div>
           <div class="network-toolbar" id="network-directory"><div><h2>People who can add context</h2><p>Search by company, sector, experience, or relationship path.</p></div><label class="search-box small-search"><span aria-hidden="true">⌕</span><input id="network-search" type="search" placeholder="Try “pharma” or “RELIANCE”…" aria-label="Search synthetic network profiles"></label></div>
           <div class="network-filters" role="group" aria-label="Filter network profiles"><button class="filter active" type="button" data-network-filter="all" aria-pressed="true">All people</button><button class="filter" type="button" data-network-filter="company" aria-pressed="false">Company overlap</button><button class="filter" type="button" data-network-filter="expertise" aria-pressed="false">Sector expertise</button><button class="filter" type="button" data-network-filter="reconnect" aria-pressed="false">Reconnect</button></div>
@@ -62,14 +62,14 @@
           <footer class="disclaimer">Network details are synthetic product examples. Do not treat them as real people, referrals, or diligence.</footer>
         </section>
         <section class="view" id="view-portfolio">
-          <div class="page-heading"><div><div class="eyebrow">YOUR INVESTMENT WORKSPACE</div><h1>Portfolio</h1><p class="subhead">Track companies you add. Quotes are fetched from the NSE feed.</p></div><button class="quiet-btn" type="button" data-go-view="research">＋ <span>Find companies</span></button></div>
+          <div class="page-heading"><div><div class="eyebrow">Tracked equities</div><h1>Portfolio</h1><p class="subhead">Track companies you add. Quotes are fetched from the NSE feed.</p></div><button class="quiet-btn" type="button" data-go-view="research">＋ <span>Find companies</span></button></div>
           <div class="portfolio-summary" id="portfolio-summary" aria-live="polite"></div>
-          <div class="portfolio-toolbar"><label class="search-box"><span aria-hidden="true">⌕</span><input id="portfolio-search" type="search" placeholder="Filter tracked companies…" aria-label="Filter portfolio companies"></label><span class="source-label">SAVED ON THIS DEVICE</span></div>
+          <div class="portfolio-toolbar"><label class="search-box"><span aria-hidden="true">⌕</span><input id="portfolio-search" type="search" placeholder="Filter tracked companies…" aria-label="Filter portfolio companies"></label><span class="source-label">Saved on this device</span></div>
           <div class="portfolio-grid" id="portfolio-list" aria-live="polite"></div>
           <footer class="disclaimer">This portfolio tracks company quotes only. It does not store positions, quantities, purchase prices or returns.</footer>
         </section>
         <section class="view" id="view-watchlist">
-          <div class="page-heading"><div><div class="eyebrow">YOUR READING QUEUE</div><h1>Watchlist</h1><p class="subhead">Save listed companies for your next research session.</p></div><button class="quiet-btn" type="button" data-go-view="research">＋ <span>Find companies</span></button></div>
+          <div class="page-heading"><div><div class="eyebrow">Saved research</div><h1>Watchlist</h1><p class="subhead">Save listed companies for your next research session.</p></div><button class="quiet-btn" type="button" data-go-view="research">＋ <span>Find companies</span></button></div>
           <div class="watchlist-summary" id="watchlist-summary" aria-live="polite"></div>
           <div class="portfolio-grid" id="watchlist-list" aria-live="polite"></div>
           <footer class="disclaimer">Your watchlist is stored in this browser and is not synced to an account.</footer>
@@ -79,10 +79,10 @@
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="modal-backdrop" id="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" id="modal-close" aria-label="Close">×</button><div class="eyebrow" id="modal-eyebrow">FINN</div><h2 id="modal-title"></h2><div id="modal-body"></div></div></div>
-  <script src="enhancements.js?v=liquid-glass-refraction-20261115-v6"></script>
+  <script src="enhancements.js?v=finn-lens-v7"></script>
   <script src="ai-config.js?v=live-nse-20261115-v2"></script>
-  <script src="live-market.js?v=live-nse-20261115-v10"></script>
-  <script src="product-workflows.js?v=product-20261115-v2"></script>
+  <script src="live-market.js?v=finn-workspace-v1"></script>
+  <script src="product-workflows.js?v=finn-signals-v1"></script>
   <script src="ask-finn.js?v=live-nse-20261115-v5"></script>
 </body>
 </html>

@@ -23,6 +23,7 @@
   const normKey = (key) => String(key).toLowerCase().replace(/[^a-z0-9]/g, "");
   const formatNumber = (value, digits = 2) => Number.isFinite(Number(value)) ? new Intl.NumberFormat("en-IN", { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(Number(value)) : "Unavailable";
   const formatPercent = (value) => value != null && value !== "" && Number.isFinite(Number(value)) ? `${Number(value) > 0 ? "+" : ""}${Number(value).toFixed(2)}%` : "—";
+  const moveTone = (value) => value > 0 ? "up" : value < 0 ? "down" : "neutral";
   const asRows = (value) => {
     if (Array.isArray(value)) return value;
     if (value && typeof value === "object") {
@@ -78,9 +79,15 @@
     toast.timer = window.setTimeout(() => node.classList.remove("show"), 2400);
   }
   function navigate(view, options = {}) {
-    if (!document.querySelector(`.nav-item[data-view="${view}"]`) || !document.getElementById(`view-${view}`)) return;
+    const buttons = $$(".nav-item");
+    if (!buttons.some((button) => button.dataset.view === view) || !document.getElementById(`view-${view}`)) return;
     state.view = view;
-    $$(".nav-item").forEach((button) => button.classList.toggle("active", button.dataset.view === view));
+    buttons.forEach((button) => {
+      const current = button.dataset.view === view;
+      button.classList.toggle("active", current);
+      if (current) button.setAttribute("aria-current", "page");
+      else button.removeAttribute("aria-current");
+    });
     $$(".view").forEach((section) => section.classList.toggle("active", section.id === `view-${view}`));
     const labels = { home: "Market", research: "Research", portfolio: "Portfolio", watchlist: "Watchlist", network: "Network", signals: "Signals" };
     if ($("#crumb-current")) $("#crumb-current").textContent = labels[view];
@@ -219,8 +226,7 @@
       }
       priceNode.textContent = formatNumber(found.price);
       changeNode.textContent = formatPercent(found.change);
-      changeNode.classList.toggle("up", found.change == null || found.change >= 0);
-      changeNode.classList.toggle("down", found.change != null && found.change < 0);
+      changeNode.className = `market-move ${moveTone(found.change)}`;
       const note = $(".market-note", target);
       if (note) note.textContent = found.eod && found.date ? `Latest close · ${found.date}` : "NSE market data";
     }
@@ -237,7 +243,7 @@
     if (!card) return;
     const history = normalizedHistory(state.overview?.history);
     const series = history.length >= 2 ? svgChart(history, "NIFTY 50") : "";
-    card.innerHTML = `<div class="chart-heading"><div><span class="eyebrow">MARKET SNAPSHOT · END OF DAY</span><h2>NIFTY 50</h2></div><span class="source-label">${series ? `${history.length} ACTUAL DAILY CLOSES` : index?.price == null ? "LIVE SERIES UNAVAILABLE" : "LATEST INDEX VALUE"}</span></div>${series || `<div class="chart-unavailable">${index?.price == null ? "Historical index values are unavailable right now. No synthetic chart is shown." : `<strong>${formatNumber(index.price)}</strong><span>${formatPercent(index.change)} · latest value reported by NSE</span>`}</div>`}<div class="chart-foot">Intraday delay: 1–3 minutes · historical values are end-of-day · <a href="https://www.nseindia.in/nse-mcp" target="_blank" rel="noopener noreferrer">NSE source ↗</a></div>`;
+    card.innerHTML = `<div class="chart-heading"><div><span class="eyebrow">Market snapshot · End of day</span><h2>NIFTY 50</h2></div><span class="source-label">${series ? `${history.length} daily closes` : index?.price == null ? "History unavailable" : "Latest index value"}</span></div>${series || `<div class="chart-unavailable">${index?.price == null ? "Historical index values are unavailable right now. No synthetic chart is shown." : `<strong>${formatNumber(index.price)}</strong><span>${formatPercent(index.change)} · latest value reported by NSE</span>`}</div>`}<div class="chart-foot">Intraday delay: 1–3 minutes · historical values are end-of-day · <a href="https://www.nseindia.in/nse-mcp" target="_blank" rel="noopener noreferrer">NSE source ↗</a></div>`;
   }
   function normalizeMovers(payload) {
     const collect = (source, mode) => {
@@ -277,7 +283,21 @@
       window.dispatchEvent(new CustomEvent("finn:movers-updated", { detail: { items: state.movers, mode: state.moverMode, date: state.moverDate } }));
       return;
     }
-    list.innerHTML = items.map((item) => `<button type="button" class="feed-card live-mover" data-symbol="${esc(item.symbol)}" aria-label="Open ${esc(item.name)} research"><span class="priority-bar ${item.direction === "up" ? "low" : "high"}"></span><span class="company-logo">${esc(item.symbol.slice(0, 5))}</span><span class="card-main"><span class="card-meta"><span class="ticker">${esc(item.symbol)}</span><span class="tag ${item.direction === "up" ? "results" : "market"}">${item.direction === "up" ? "Gainer" : "Loser"}</span></span><span class="feed-title">${esc(item.name)}</span><span class="feed-copy">${item.mode === "eod" ? `Official NSE end-of-day data for ${esc(state.moverDate || "the latest trading session")}.` : "Official NSE market-mover data."} Tap to open company research.</span></span><span class="card-right"><span class="move ${item.direction}">${formatPercent(item.quote.change)}</span><small>${item.quote.price == null ? "Price unavailable" : `₹${formatNumber(item.quote.price)}`}</small></span></button>`).join("");
+    list.innerHTML = items.map((item) => {
+      const tone = moveTone(item.quote.change);
+      const direction = tone === "up" ? "Gainer" : tone === "down" ? "Loser" : item.quote.change === 0 ? "Unchanged" : "Change unavailable";
+      const price = item.quote.price == null ? "Price unavailable" : `₹${formatNumber(item.quote.price)}`;
+      return `<button type="button" class="feed-card live-mover" data-symbol="${esc(item.symbol)}">
+        <span class="company-logo" aria-hidden="true">${esc(item.symbol.slice(0, 5))}</span>
+        <span class="card-main">
+          <span class="feed-title">${esc(item.name)}</span>
+          <span class="card-meta">${item.name !== item.symbol ? `<span class="ticker">${esc(item.symbol)}</span>` : ""}
+            <span class="tag ${tone}">${direction}</span>
+          </span>
+        </span>
+        <span class="card-right"><span class="move ${tone}">${formatPercent(item.quote.change)}</span><small>${price}</small></span>
+      </button>`;
+    }).join("");
     window.dispatchEvent(new CustomEvent("finn:movers-updated", { detail: { items: state.movers, mode: state.moverMode, date: state.moverDate } }));
   }
   async function loadOverview() {
@@ -328,23 +348,25 @@
   function companyCard(entry, mode) {
     const company = state.companies.get(entry.symbol) || entry;
     const quote = company.quoteData || { price: null, change: null };
-    const priceLabel = quote.isClose ? `Latest close${company.historyAsOf ? ` · ${company.historyAsOf}` : ""}` : "Live price · NSE";
-    const freshnessLabel = quote.isClose ? `End of day · ${company.historyAsOf || "date not provided"}` : company.updatedAt ? marketStamp(company.updatedAt) : "Price loads when available";
+    const priceLabel = quote.isClose ? "Latest close" : "Latest NSE quote";
+    const freshnessLabel = quote.isClose ? `End of day · ${company.historyAsOf || "date not provided"}`
+      : company.updatedAt ? marketStamp(company.updatedAt) : company.error ? "NSE quote unavailable" : "Awaiting NSE data";
     const isTracked = state.portfolio.some((item) => item.symbol === entry.symbol);
     const isWatched = state.watchlist.some((item) => item.symbol === entry.symbol);
-    const remove = mode === "watchlist" ? `<button class="watch-action" data-watch-action="remove" data-symbol="${esc(entry.symbol)}">Remove</button>` : "";
-    return `<article class="portfolio-card panel"><div class="portfolio-card-head"><div class="portfolio-company-id"><span class="company-logo">${esc(company.short || entry.symbol.slice(0, 5))}</span><div><h3>${esc(company.name || entry.name || entry.symbol)}</h3><p>${esc(entry.symbol)} · ${esc(company.sector || "NSE listed equity")}</p></div></div>${remove}</div><div class="portfolio-card-metrics"><div><span>${esc(priceLabel)}</span><b>${quote.price == null ? "Unavailable" : `₹${formatNumber(quote.price)}`}</b></div><div><span>${quote.isClose ? "Change from previous close" : "Day change"}</span><b class="${quote.change != null && quote.change < 0 ? "down" : "up"}">${formatPercent(quote.change)}</b></div></div><div class="portfolio-card-footer"><span class="data-status">${esc(freshnessLabel)}</span><span class="card-actions"><button class="text-btn" data-card-action="${isTracked ? "untrack" : "track"}" data-symbol="${esc(entry.symbol)}">${isTracked ? "Remove from portfolio" : "Add to portfolio"}</button><button class="text-btn" data-card-action="${isWatched ? "unwatch" : "watch"}" data-symbol="${esc(entry.symbol)}">${isWatched ? "Remove watch" : "☆ Watch"}</button><button class="text-btn" data-open-company="${esc(entry.symbol)}">Research →</button></span></div></article>`;
+    const remove = mode === "watchlist" ? `<button class="watch-action" type="button" data-watch-action="remove" data-symbol="${esc(entry.symbol)}" aria-label="Remove ${esc(entry.symbol)} from watchlist">Remove</button>` : "";
+    const watch = mode === "portfolio" ? `<button class="text-btn" type="button" data-card-action="${isWatched ? "unwatch" : "watch"}" data-symbol="${esc(entry.symbol)}">${isWatched ? "Unwatch" : "Watch"}</button>` : "";
+    return `<article class="portfolio-card panel"><div class="portfolio-card-head"><div class="portfolio-company-id"><span class="company-logo">${esc(company.short || entry.symbol.slice(0, 5))}</span><div><h3>${esc(company.name || entry.name || entry.symbol)}</h3><p>${esc(entry.symbol)} · ${esc(company.sector || "NSE listed equity")}</p></div></div>${remove}</div><div class="portfolio-card-metrics"><div><span>${esc(priceLabel)}</span><b>${quote.price == null ? "Unavailable" : `₹${formatNumber(quote.price)}`}</b></div><div><span>${quote.isClose ? "Change vs previous close" : "Day change"}</span><b class="${moveTone(quote.change)}">${formatPercent(quote.change)}</b></div></div><div class="portfolio-card-footer"><span class="data-status">${esc(freshnessLabel)}</span><span class="card-actions"><button class="text-btn" data-card-action="${isTracked ? "untrack" : "track"}" data-symbol="${esc(entry.symbol)}">${isTracked ? "Untrack" : "Track"}</button>${watch}<button class="text-btn" data-open-company="${esc(entry.symbol)}">Research →</button></span></div></article>`;
   }
   function emptyList(title, copy, actionLabel = "Find a company") {
-    return `<div class="portfolio-empty panel"><span class="empty-star" aria-hidden="true">☆</span><b>${esc(title)}</b><p>${esc(copy)}</p><button class="primary-btn" type="button" data-go-view="research">${esc(actionLabel)} <span>→</span></button></div>`;
+    return `<div class="portfolio-empty panel"><span class="empty-star" aria-hidden="true">☆</span><h2>${esc(title)}</h2><p>${esc(copy)}</p><button class="primary-btn" type="button" data-go-view="research">${esc(actionLabel)} <span aria-hidden="true">→</span></button></div>`;
   }
   function renderPortfolio() {
     const query = String($("#portfolio-search")?.value || "").trim().toLowerCase();
     const entries = state.portfolio.filter((item) => `${item.name} ${item.symbol}`.toLowerCase().includes(query));
     const summary = $("#portfolio-summary");
-    if (summary) summary.innerHTML = `<div class="portfolio-stat"><span>Demo universe</span><b>${state.portfolio.length}</b><small>Listed companies · this device</small></div><div class="portfolio-stat"><span>Market data</span><b>NSE</b><small>Actual exchange quote when available</small></div><div class="portfolio-stat"><span>Watchlist</span><b>${state.watchlist.length}</b><small>Saved on this device</small></div>`;
+    if (summary) summary.innerHTML = `<div class="portfolio-stat"><span>Tracked companies</span><b>${state.portfolio.length}</b><small>Saved on this device</small></div><div class="portfolio-stat"><span>Market data</span><b>NSE</b><small>Exchange quote source</small></div><div class="portfolio-stat"><span>Watchlist</span><b>${state.watchlist.length}</b><small>Saved on this device</small></div>`;
     const list = $("#portfolio-list");
-    if (list) list.innerHTML = entries.length ? entries.map((entry) => companyCard(entry, "portfolio")).join("") : emptyList(query ? "No tracked company matches" : "Your demo universe is empty", query ? "Try a different name or symbol." : "Search for NSE-listed companies to build a coverage universe. This list never represents positions or investment returns.");
+    if (list) list.innerHTML = entries.length ? entries.map((entry) => companyCard(entry, "portfolio")).join("") : emptyList(query ? "No tracked company matches" : "Your portfolio is empty", query ? "Try a different name or symbol." : "Add NSE-listed companies to keep their latest quotes together.");
     if (state.view === "portfolio") entries.forEach((entry) => ensureCompany(entry.symbol, entry.name, false));
     persistLists();
   }
@@ -378,6 +400,7 @@
     const sequence = ++state.searchSequence;
     const isCurrentSearch = () => sequence === state.searchSequence && ($("#company-search")?.value.trim() ?? trimmed) === trimmed;
     if (trimmed.length < 2) { state.search = []; renderChips(); return; }
+    state.search = [];
     if (region) region.innerHTML = '<span class="search-status">Searching official NSE listings…</span>';
     try {
       const parseItems = (payload) => (Array.isArray(payload.items) ? payload.items : []).filter((item) => item.symbol).map((item) => ({ symbol: String(item.symbol).toUpperCase(), name: item.name || item.symbol, sector: item.sector || "NSE listed equity" }));
@@ -390,18 +413,13 @@
       if (!isCurrentSearch()) return;
       state.search = items;
       state.search.forEach((item) => state.companies.set(item.symbol, { ...state.companies.get(item.symbol), ...item, short: item.symbol.slice(0, 5) }));
-      const directSymbol = trimmed.toUpperCase().replace(/\.NS$/, "").replace(/[^A-Z0-9&.-]/g, "");
-      if (!state.search.length && /^[A-Z0-9&.-]{1,24}$/.test(directSymbol)) {
-        const symbol = directSymbol;
-        state.search = [{ symbol, name: symbol, sector: "NSE listed equity" }];
-      }
       renderChips();
-      if (!state.search.length && region) region.innerHTML = '<span class="search-status">No NSE-listed match was returned.</span>';
+      if (!state.search.length && region) region.innerHTML = '<span class="search-status">No matching NSE listing. Try another name or enter an exact ticker.</span>';
     } catch (error) {
       if (!isCurrentSearch()) return;
       state.search = [];
       const message = String(error?.message || "The official NSE listings could not be searched.").trim().replace(/[.!?]+$/, "");
-      if (region) region.innerHTML = `<span class="search-status">${esc(message)}. Try again in a moment.</span>`;
+      if (region) region.innerHTML = `<span class="search-status" data-kind="error">${esc(message)}. Try again in a moment.</span>`;
     }
   }
   function numberList(value) {
@@ -442,7 +460,7 @@
     current.loading = (async () => {
       if (open) {
         state.selected = current;
-        $("#research-card").innerHTML = '<div class="panel research-placeholder"><span class="empty-star">◌</span><h2>Loading official company data…</h2><p>Requesting the NSE quote, end-of-day history and recent corporate disclosures.</p></div>';
+        $("#research-card").innerHTML = '<div class="panel research-placeholder" aria-busy="true"><span class="empty-star" aria-hidden="true">◌</span><h2>Loading company research</h2><p>Requesting the latest NSE quote, price history and filings.</p></div>';
         navigate("research");
       }
       try {
@@ -474,7 +492,7 @@
         window.dispatchEvent(new CustomEvent("finn:company-updated", { detail: current }));
         if (open) {
           state.selected = current;
-          $("#research-card").innerHTML = `<div class="panel analysis-note"><b>Live company data is unavailable.</b><p>${esc(error.message)}</p><button type="button" class="primary-btn" data-retry-company="${esc(symbol)}">Try again</button></div>`;
+          $("#research-card").innerHTML = `<div class="panel research-placeholder research-error"><h2>Company data is unavailable</h2><p>${esc(error.message)}</p><button type="button" class="primary-btn" data-retry-company="${esc(symbol)}">Try again</button></div>`;
         }
         if (state.view === "portfolio") renderPortfolio();
         if (state.view === "watchlist") renderWatchlist();
@@ -491,16 +509,27 @@
     const watched = state.watchlist.some((item) => item.symbol === company.symbol);
     const priceKind = quote.isClose ? `Latest close${company.historyAsOf ? ` · ${esc(company.historyAsOf)}` : ""}` : "Live quote · NSE delay applies";
     const movementKind = quote.isClose ? "Change from previous close" : "Day change · NSE";
-    $("#research-card").innerHTML = `<div class="research-layout"><div class="panel research-main"><div class="company-title"><span class="company-logo">${esc(company.short || company.symbol.slice(0, 5))}</span><div><h2>${esc(company.name || company.symbol)}</h2><p>${esc(company.symbol)} · ${esc(company.sector || "NSE listed equity")} · NSE</p></div><button class="quiet-btn company-actions" type="button" data-company-action="${tracked ? "untrack" : "track"}" data-symbol="${esc(company.symbol)}">${tracked ? "✓ In portfolio" : "＋ Portfolio"}</button><button class="quiet-btn" type="button" data-company-action="${watched ? "unwatch" : "watch"}" data-symbol="${esc(company.symbol)}">${watched ? "★ Saved" : "☆ Watch"}</button></div><div class="metric-grid"><div class="metric"><span>${priceKind}</span><b>${quote.price == null ? "Unavailable" : `₹${formatNumber(quote.price)}`}</b><small class="${quote.change != null && quote.change < 0 ? "down" : "up"}">${formatPercent(quote.change)}</small></div><div class="metric"><span>${movementKind}</span><b>${quote.absoluteChange == null ? "Unavailable" : `₹${formatNumber(quote.absoluteChange)}`}</b><small>${quote.isClose ? "Calculated from NSE closes" : "As reported by NSE"}</small></div><div class="metric"><span>Revenue</span><b>Not in feed</b><small>Verify in company filings</small></div><div class="metric"><span>Profit</span><b>Not in feed</b><small>Verify in company filings</small></div></div><section class="research-section"><div class="chart-heading"><div><span class="eyebrow">PRICE HISTORY · END OF DAY</span><h3>${esc(company.name || company.symbol)}</h3></div><span class="source-label">${company.history?.length || 0} observations</span></div>${svgChart(company.history || [], company.name || company.symbol)}</section><section class="research-section"><h3>Recent corporate announcements</h3><p class="source-status">NSE announcement metadata. Open the filing to verify its full contents.</p><div id="announcement-list"></div></section><section class="research-section"><h3>Fundamentals</h3><p>Quarterly revenue, EBITDA, profit, margins and market capitalization are not supplied by this live market feed, so FINN leaves them blank. Open a primary disclosure to inspect reported financial statements.</p></section></div><aside class="panel research-side"><h3>Data quality & sources</h3><div class="source-item"><b>Quote</b><small>${esc(company.freshness || "NSE delayed intraday feed")}</small><a href="https://www.nseindia.in/nse-mcp" target="_blank" rel="noopener noreferrer">NSE market data terms ↗</a></div><div class="source-item"><b>Price history</b><small>End-of-day values from the exchange history feed.</small></div><div class="source-item"><b>AI research</b><small>Ask FINN summarizes recent NSE announcement metadata; it does not claim to read filing attachments.</small></div></aside></div>`;
+    $("#research-card").innerHTML = `<div class="research-layout"><div class="panel research-main"><div class="company-title"><span class="company-logo">${esc(company.short || company.symbol.slice(0, 5))}</span><div><h2>${esc(company.name || company.symbol)}</h2><p>${esc(company.symbol)} · ${esc(company.sector || "NSE listed equity")} · NSE</p></div><div class="research-actions"><button class="quiet-btn" type="button" aria-pressed="${tracked}" data-company-action="${tracked ? "untrack" : "track"}" data-symbol="${esc(company.symbol)}">${tracked ? "✓ In portfolio" : "＋ Portfolio"}</button><button class="quiet-btn" type="button" aria-pressed="${watched}" data-company-action="${watched ? "unwatch" : "watch"}" data-symbol="${esc(company.symbol)}">${watched ? "★ Saved" : "☆ Watch"}</button></div></div><div class="metric-grid"><div class="metric"><span>${priceKind}</span><b>${quote.price == null ? "Unavailable" : `₹${formatNumber(quote.price)}`}</b><small class="${moveTone(quote.change)}">${formatPercent(quote.change)}</small></div><div class="metric"><span>${movementKind}</span><b>${quote.absoluteChange == null ? "Unavailable" : `₹${formatNumber(quote.absoluteChange)}`}</b><small>${quote.isClose ? "Calculated from NSE closes" : "As reported by NSE"}</small></div><div class="metric"><span>Revenue</span><b>Not in feed</b><small>Verify in company filings</small></div><div class="metric"><span>Profit</span><b>Not in feed</b><small>Verify in company filings</small></div></div><section class="research-section"><div class="chart-heading"><div><span class="eyebrow">Price history · End of day</span><h3>${esc(company.name || company.symbol)}</h3></div><span class="source-label">${company.history?.length || 0} observations</span></div>${svgChart(company.history || [], company.name || company.symbol)}</section><section class="research-section"><h3>Recent corporate announcements</h3><p class="source-status">NSE announcement metadata. Open the filing to verify its full contents.</p><div id="announcement-list"></div></section><section class="research-section"><h3>Fundamentals</h3><p>Quarterly revenue, EBITDA, profit, margins and market capitalization are not supplied by this live market feed, so FINN leaves them blank. Open a primary disclosure to inspect reported financial statements.</p></section></div><aside class="panel research-side"><h3>Data quality & sources</h3><div class="source-item"><b>Quote</b><small>${esc(company.freshness || "NSE delayed intraday feed")}</small><a href="https://www.nseindia.in/nse-mcp" target="_blank" rel="noopener noreferrer">NSE market data terms ↗</a></div><div class="source-item"><b>Price history</b><small>End-of-day values from the exchange history feed.</small></div><div class="source-item"><b>AI research</b><small>Ask FINN summarizes recent NSE announcement metadata; it does not claim to read filing attachments.</small></div></aside></div>`;
     listAnnouncements(company);
     renderChips();
     window.dispatchEvent(new CustomEvent("finn:company-selected", { detail: company }));
   }
-  function openModal(title, body, eyebrow = "PROFILE") {
+  let modalTrigger;
+  function openModal(title, body, eyebrow = "Profile") {
+    modalTrigger = document.activeElement;
     $("#modal-title").textContent = title;
     $("#modal-eyebrow").textContent = eyebrow;
     $("#modal-body").innerHTML = body;
     $("#modal-backdrop").classList.add("open");
+    $(".shell").inert = true;
+    $("#modal-close").focus();
+  }
+  function closeModal() {
+    const backdrop = $("#modal-backdrop");
+    if (!backdrop?.classList.contains("open")) return;
+    backdrop.classList.remove("open");
+    $(".shell").inert = false;
+    modalTrigger?.focus();
   }
   function bindActions() {
     document.addEventListener("click", (event) => {
@@ -512,7 +541,7 @@
       if (go) { event.preventDefault(); navigate(go.dataset.goView); return; }
       const profile = target.closest("[data-profile-trigger]");
       if (profile) { event.preventDefault(); openModal("Sitender", '<p>Your FINN workspace is stored in this browser.</p><div class="setting-row"><span>Display name</span><b>Sitender</b></div><div class="setting-row"><span>Data storage</span><b>This device only</b></div><p class="muted">No account or contacts are connected.</p>'); return; }
-      if (target.closest("#modal-close") || target.id === "modal-backdrop") { $("#modal-backdrop").classList.remove("open"); return; }
+      if (target.closest("#modal-close") || target.id === "modal-backdrop") { closeModal(); return; }
       const symbolButton = target.closest("[data-symbol]");
       if (symbolButton?.dataset.symbol) {
         if (symbolButton.closest(".company-chips")) ensureCompany(symbolButton.dataset.symbol, symbolButton.querySelector("b")?.textContent || symbolButton.dataset.symbol, true);
@@ -560,7 +589,7 @@
     $("#portfolio-search")?.addEventListener("input", renderPortfolio);
     document.addEventListener("keydown", (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); navigate("research"); $("#company-search")?.focus(); }
-      if (event.key === "Escape") $("#modal-backdrop")?.classList.remove("open");
+      if (event.key === "Escape") closeModal();
     });
     window.addEventListener("hashchange", () => { const view = location.hash.slice(1); if (view) navigate(view, { fromHash: true }); });
   }

@@ -8,6 +8,7 @@
   root.dataset.theme = theme;
 
   const paintTheme = () => {
+    if (themeMeta) themeMeta.content = theme === "dark" ? "#0b1117" : "#f3f6f5";
     if (!themeButton) return;
     const next = theme === "dark" ? "light" : "dark";
     themeButton.innerHTML = `<span class="theme-glyph" aria-hidden="true">${next === "light" ? "☼" : "☾"}</span><span>${next === "light" ? "Light" : "Dark"}</span>`;
@@ -18,7 +19,6 @@
     theme = theme === "dark" ? "light" : "dark";
     root.dataset.theme = theme;
     try { localStorage.setItem("finn-theme", theme); } catch {}
-    if (themeMeta) themeMeta.content = theme === "dark" ? "#0d1117" : "#f6f7f4";
     paintTheme();
   });
   paintTheme();
@@ -27,9 +27,8 @@
   if (nav) nav.style.setProperty("--nav-count", String(nav.querySelectorAll(".nav-item").length));
 
   const surfaces = [
-    { selector: ".sidebar", name: "dock", displacement: 20 },
-    { selector: ".topbar", name: "capsule", displacement: 16 },
-    { selector: ".market-strip", name: "wide", displacement: 14 }
+    { selector: ".sidebar", name: "dock", displacement: 16 },
+    { selector: ".topbar", name: "capsule", displacement: 14 }
   ];
   for (const glass of surfaces) {
     glass.element = document.querySelector(glass.selector);
@@ -131,7 +130,7 @@
       filter.innerHTML = '<feImage x="0" y="0" preserveAspectRatio="none" result="rim"/>'
         + '<feDisplacementMap in="SourceGraphic" in2="rim" scale="' + (2 * glass.displacement)
         + '" xChannelSelector="R" yChannelSelector="G"/>'
-        + '<feGaussianBlur stdDeviation="2.4" edgeMode="duplicate"/>'
+        + '<feGaussianBlur stdDeviation="4" edgeMode="duplicate"/>'
         + '<feColorMatrix type="saturate" values="1.25"/>';
       glass.filter = filter;
       glass.map = filter.firstElementChild;

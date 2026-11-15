@@ -141,7 +141,9 @@
 
   function alertMarkup(item) {
     const networkNote = item.network && isFounding ? `<span class="signal-network-note"><b>Synthetic network context:</b> ${esc(item.network.name)} · ${esc(item.network.expertise[0])} <button type="button" data-network-company="${esc(item.symbol)}">Explore ↗</button></span>` : "";
-    return `<article class="signal-card"><span class="signal-icon" aria-hidden="true">${item.kind === "move" ? "↗" : "▤"}</span><div class="signal-main"><div class="signal-label-row"><span class="signal-category">${esc(item.kind === "move" ? "PRICE MOVE" : item.category.toUpperCase())}</span><span class="ticker">${esc(item.symbol)} · ${esc(item.name)}</span></div><b>${esc(item.headline)}</b><p>${esc(item.detail)}</p><small>${esc(item.date || "NSE market data · latest available")} · ${esc(item.kind === "move" ? "NSE MCP" : "NSE filing")}</small>${networkNote}<a class="signal-source" href="${esc(item.source)}" target="_blank" rel="noopener noreferrer">Open primary NSE source ↗</a></div><div class="signal-value ${esc(item.direction || "")}">${esc(item.value || "")}</div>${item.kind === "filing" ? `<button type="button" class="signal-card-action" data-open-company="${esc(item.symbol)}">Research</button>` : ""}</article>`;
+    const direction = item.direction || "neutral";
+    const icon = direction === "up" ? "↗" : direction === "down" ? "↘" : "▤";
+    return `<article class="signal-card" data-direction="${direction}"><span class="signal-icon" aria-hidden="true">${icon}</span><div class="signal-main"><div class="signal-label-row"><span class="signal-category">${esc(item.kind === "move" ? "Price move" : item.category)}</span><span class="ticker">${esc(item.symbol)} · ${esc(item.name)}</span></div><b>${esc(item.headline)}</b><p>${esc(item.detail)}</p><small>${esc(item.date || "NSE market data · latest available")} · ${esc(item.kind === "move" ? "NSE MCP" : "NSE filing")}</small>${networkNote}<a class="signal-source" href="${esc(item.source)}" target="_blank" rel="noopener noreferrer">Open primary NSE source ↗</a></div>${item.value ? `<div class="signal-value ${direction}">${esc(item.value)}</div>` : ""}${item.kind === "filing" ? `<button type="button" class="signal-card-action" data-open-company="${esc(item.symbol)}">Research</button>` : ""}</article>`;
   }
 
   function renderSignals() {
@@ -167,9 +169,9 @@
     if (updated) updated.textContent = result.loaded ? `Data returned for ${result.loaded} of ${result.total} companies` : "Waiting for portfolio data";
     if (summary) summary.innerHTML = `<div class="signal-stat"><span>Companies checked</span><b>${result.loaded} / ${result.total}</b></div><div class="signal-stat"><span>Move alerts</span><b>${moves}</b></div><div class="signal-stat"><span>Material filings</span><b>${filings}</b></div>`;
     if (result.alerts.length) target.innerHTML = result.alerts.map(alertMarkup).join("");
-    else if (result.loaded < result.total) target.innerHTML = `<div class="panel empty-state">Loading actual NSE quotes and filing metadata for your selected companies. ${result.loaded} of ${result.total} have responded so far; the list will update as data arrives.</div>`;
+    else if (result.loaded < result.total) target.innerHTML = `<div class="panel empty-state" aria-busy="true">Loading actual NSE quotes and filing metadata for your selected companies. ${result.loaded} of ${result.total} have responded so far; the list will update as data arrives.</div>`;
     else if (windowHours !== "all" && !selectedCategories.size) target.innerHTML = '<div class="panel empty-state">Select at least one filing category, or use “All returned filings”.</div>';
-    else target.innerHTML = `<div class="panel empty-state">No actual NSE quote changes crossed ±${threshold.toFixed(1)}%, and no selected filing types matched this window. Nothing is fabricated to fill the digest.</div>`;
+    else target.innerHTML = `<div class="panel empty-state">No actual NSE quote changes crossed ±${threshold.toFixed(1)}%, and no selected filing types matched this window.</div>`;
   }
 
   function renderFoundingPush() {
@@ -185,8 +187,8 @@
     const summary = $("#push-summary");
     if (summary) summary.innerHTML = `<span><b>${result.loaded}/${result.total}</b> companies checked</span><span><b>${result.alerts.length}</b> material signals</span><span><b>${result.alerts.filter((item) => item.network).length}</b> synthetic network matches</span>`;
     if (result.alerts.length) target.innerHTML = result.alerts.map(alertMarkup).join("");
-    else if (result.loaded < result.total) target.innerHTML = `<div class="empty-state">Loading actual NSE quotes and filing metadata for the selected universe. ${result.loaded} of ${result.total} have responded so far.</div>`;
-    else target.innerHTML = `<div class="empty-state">No actual NSE quote change crossed ±${threshold.toFixed(1)}%, and no material filing matched this window. FINN does not invent alerts when the source has none.</div>`;
+    else if (result.loaded < result.total) target.innerHTML = `<div class="empty-state" aria-busy="true">Loading actual NSE quotes and filing metadata for the selected universe. ${result.loaded} of ${result.total} have responded so far.</div>`;
+    else target.innerHTML = `<div class="empty-state">No actual NSE quote change crossed ±${threshold.toFixed(1)}%, and no material filing matched this window.</div>`;
   }
 
   function savePrefs() {
