@@ -4,15 +4,15 @@
 
 Hello ENAM team,
 
-I built FINN, a mobile-first prototype for an investor’s daily workflow. The Push brief prioritizes sample company events and unusual market moves; Pull opens a company research view; the Network layer shows how synthetic professional connections could add context without exposing or contacting anyone automatically.
+I built FINN, a mobile-first investor workflow prototype that connects market monitoring with company research. The Market view uses official NSE market data, including dated end-of-day fallbacks; selecting a mover opens its company research page with exchange price history and links to primary disclosures.
 
-The prototype includes a 16-company mock watchlist, five additional research-only companies, and a source lookup for arbitrary NSE tickers. The mobile prototype includes dark mode, a light-mode toggle, persistent bottom navigation, and charts that make its sample data easier to review. Figures, alerts, and profiles are illustrative. The application does not yet ingest live prices, exchange filings, or company fundamentals; I’ve documented that limitation and the production architecture and privacy choices in the repository.
+Ask FINN provides an optional Gemini-assisted summary grounded in recent NSE announcement metadata, with official source links. It does not read filing attachments or supply company financial statements, so unsupported revenue, profit, and valuation figures remain unavailable. Portfolio and watchlist entries are stored on the device. The Network view stays empty until an authorized contact source is connected.
+
+The interface defaults to dark mode, includes a light-mode toggle, and adapts its navigation and charts to phone screens.
 
 **Prototype:** https://sitendernarwal.github.io/enam-finn-founding-ai-engineer/  
 **Public repository:** https://github.com/sitendernarwal/enam-finn-founding-ai-engineer  
 **AI build history:** https://github.com/sitendernarwal/enam-finn-founding-ai-engineer/blob/main/history.md
-
-I focused on a few connected workflows, clear source discovery, and a private-by-default Network concept. The next step would be connecting permitted primary-source feeds and grounding each research claim in a specific filing or report.
 
 Regards,  
 Sitender
