@@ -1,76 +1,76 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0d1117"><meta name="description" content="FINN — an investor's daily intelligence brief">
-  <script>try{const t=localStorage.getItem("finn-theme")==="light"?"light":"dark";document.documentElement.dataset.theme=t;const m=document.querySelector('meta[name="theme-color"]');if(m)m.content=t==="dark"?"#0d1117":"#f6f7f4"}catch{document.documentElement.dataset.theme="dark"}</script>
-  <title>FINN — Investor intelligence</title><link rel="stylesheet" href="styles.css?v=liquid-glass-20261110-v4">
-  <link rel="stylesheet" href="enhancements.css?v=ai-mvp-20261115-v1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d1117">
+  <meta name="description" content="FINN — live, source-linked Indian equity research">
+  <script>try{document.documentElement.dataset.theme=localStorage.getItem('finn-theme')==='light'?'light':'dark'}catch{document.documentElement.dataset.theme='dark'}</script>
+  <title>FINN — Investor intelligence</title>
+  <link rel="stylesheet" href="styles.css?v=live-nse-20261115-v1">
+  <link rel="stylesheet" href="enhancements.css?v=live-glass-20261115-v1">
 </head>
-<body>
+<body data-app="founding">
   <div class="shell">
     <aside class="sidebar">
       <a class="brand" href="#home" aria-label="FINN home"><span class="brand-mark">F</span><span>finn<span class="brand-dot">.</span><small>INVESTOR INTELLIGENCE</small></span></a>
       <div class="workspace-label">WORKSPACE</div>
       <nav class="nav" aria-label="Main navigation">
-        <button class="nav-item active" data-view="home"><span class="nav-icon">◫</span>Daily brief <span class="nav-count">4</span></button>
-        <button class="nav-item" data-view="research"><span class="nav-icon">⌕</span>Research</button>
-        <button class="nav-item" data-view="portfolio"><span class="nav-icon">▤</span>Portfolio</button>
-        <button class="nav-item" data-view="watchlist"><span class="nav-icon">☆</span>Watchlist <span class="nav-count" id="watchlist-nav-count" hidden>0</span></button>
-        <button class="nav-item" data-view="network"><span class="nav-icon">◎</span>My network</button>
+        <button class="nav-item active" data-view="home"><span class="nav-icon" aria-hidden="true">◫</span><span class="nav-label">Market</span></button>
+        <button class="nav-item" data-view="research"><span class="nav-icon" aria-hidden="true">⌕</span><span class="nav-label">Research</span></button>
+        <button class="nav-item" data-view="portfolio"><span class="nav-icon" aria-hidden="true">▤</span><span class="nav-label">Portfolio</span></button>
+        <button class="nav-item" data-view="watchlist"><span class="nav-icon" aria-hidden="true">☆</span><span class="nav-label">Watchlist</span><span class="nav-count" id="watchlist-nav-count" hidden>0</span></button>
+        <button class="nav-item" data-view="network"><span class="nav-icon" aria-hidden="true">◎</span><span class="nav-label">Network</span></button>
       </nav>
-      <div class="sidebar-bottom"><div class="portfolio-mini"><div class="mini-top"><span>YOUR PORTFOLIO</span><span>16</span></div><strong>Indian equities</strong><div class="mini-foot">NSE · BSE <span>Demo portfolio</span></div></div><button class="user-row profile-trigger" type="button" data-profile-trigger aria-haspopup="dialog" aria-controls="modal-backdrop" aria-label="Open Sitender profile"><span class="avatar avatar-user">S</span><span class="profile-copy"><b>Sitender</b><small>Private workspace</small></span><span class="more" aria-hidden="true">···</span></button></div>
+      <div class="sidebar-bottom">
+        <div class="portfolio-mini"><div class="mini-top"><span>YOUR WORKSPACE</span><span id="portfolio-mini-count">0</span></div><strong>Tracked companies</strong><div class="mini-foot">Saved on this device <span>Live quotes</span></div></div>
+        <button class="user-row profile-trigger" type="button" data-profile-trigger aria-haspopup="dialog" aria-controls="modal-backdrop" aria-label="Open Sitender profile"><span class="avatar avatar-user">S</span><span class="profile-copy"><b>Sitender</b><small>Local workspace</small></span><span class="more" aria-hidden="true">···</span></button>
+      </div>
     </aside>
     <main class="main">
-      <header class="topbar"><div class="crumb">Workspace <span>/</span> <b id="crumb-current">Daily brief</b></div><div class="top-actions"><span class="demo-pill"><i></i> DEMO DATA</span><button class="icon-btn" title="Notifications">♧</button><button class="avatar avatar-user top-avatar" type="button" data-profile-trigger aria-haspopup="dialog" aria-controls="modal-backdrop" aria-label="Open Sitender profile">S</button></div></header>
+      <header class="topbar"><div class="crumb">FINN <span>/</span> <b id="crumb-current">Market</b></div><div class="top-actions"><span class="demo-pill live-pill"><i></i> NSE LIVE FEED</span><button class="theme-toggle" type="button" aria-label="Switch color theme"></button><button class="avatar avatar-user top-avatar" type="button" data-profile-trigger aria-haspopup="dialog" aria-controls="modal-backdrop" aria-label="Open Sitender profile">S</button></div></header>
       <div class="content">
         <section class="view active" id="view-home">
-          <div class="page-heading"><div><div class="eyebrow">TUESDAY, 10 NOVEMBER 2026 <span class="live-dot"></span></div><h1>Your daily brief</h1><p class="subhead">The few things worth your attention today.</p></div><button class="quiet-btn" id="refresh-btn">↻ <span>Refresh brief</span></button></div>
-          <div class="market-strip"><div><span class="market-label">NIFTY 50</span><b>25,842.30</b><span class="up">+0.42%</span></div><div><span class="market-label">SENSEX</span><b>84,112.65</b><span class="up">+0.38%</span></div><div><span class="market-label">PORTFOLIO</span><b>16 companies</b><span class="market-note">Sample coverage</span></div><div class="strip-note">Market close · 9 Nov <span>◷</span></div></div>
-          <div class="section-head"><div><h2>Needs your attention <span class="tiny-count" id="feed-count">4</span></h2><p>Sample relevance order · reasons shown on each item</p></div><div class="filter-row"><button class="filter active" data-filter="all" aria-pressed="true">All <span class="filter-count">4</span></button><button class="filter" data-filter="filing" aria-pressed="false">Filings <span class="filter-count">3</span></button><button class="filter" data-filter="movement" aria-pressed="false">Market moves <span class="filter-count">1</span></button></div></div>
-          <div class="feed" id="feed" aria-label="Portfolio alerts" aria-live="polite"></div>
-          <div class="below-grid"><div class="panel compact-panel"><div class="panel-heading"><div><div class="eyebrow">SAMPLE ACTIVITY RULES</div><h3>Illustrative monitoring</h3></div><span class="green-badge" id="sample-activity-status">Demo event matches</span></div><p class="muted" id="sample-activity-copy">L&amp;T sample: 2.4× volume and +1.1% price move. Either rule can match; live monitoring is not connected. Current limits: <b id="volume-threshold-label">2×</b> volume and <b id="price-threshold-label">3%</b> price.</p><button class="text-btn" id="threshold-link">Edit demo thresholds <span>↗</span></button></div><div class="panel compact-panel network-teaser"><div class="panel-heading"><div><div class="eyebrow">YOUR NETWORK</div><h3>Context from people you know</h3></div><span class="teaser-icon">◎</span></div><p class="muted">Carry a researched company into matching synthetic profiles and draft a private question.</p><button class="text-btn" data-open-network>Explore sample connections <span>→</span></button></div></div>
-          <footer class="disclaimer">FINN prototype · All prices, financial figures, and sample events are illustrative; this is not investment advice.</footer>
+          <div class="page-heading"><div><div class="eyebrow">INDIAN EQUITIES <span class="live-dot"></span></div><h1>Market brief</h1><p class="subhead">Exchange data with source links. Prices may be delayed.</p></div><button class="quiet-btn" id="refresh-btn" type="button">↻ <span>Refresh</span></button></div>
+          <div class="market-strip" id="market-strip" aria-live="polite"><div data-index="NIFTY 50"><span class="market-label">NIFTY 50</span><b>Loading…</b><span class="market-note">NSE</span></div><div data-index="NIFTY BANK"><span class="market-label">NIFTY BANK</span><b>Loading…</b><span class="market-note">NSE</span></div><div><span class="market-label">WATCHLIST</span><b id="watchlist-market-count">0 companies</b><span class="market-note">On this device</span></div><div class="strip-note" id="market-asof">Loading official NSE data…</div></div>
+          <section class="market-chart panel" id="market-chart" aria-label="NIFTY 50 chart"></section>
+          <div class="section-head"><div><h2>Live market movers <span class="tiny-count" id="mover-count">—</span></h2><p>Official NSE gainers and losers · delayed during market hours</p></div><div class="filter-row" role="group" aria-label="Filter market movers"><button class="filter active" data-mover-filter="all" aria-pressed="true">All</button><button class="filter" data-mover-filter="gainers" aria-pressed="false">Gainers</button><button class="filter" data-mover-filter="losers" aria-pressed="false">Losers</button></div></div>
+          <div class="feed" id="feed" aria-live="polite"><div class="panel empty-state">Connecting to the official NSE market feed…</div></div>
+          <footer class="disclaimer">Market information is delayed by 1–3 minutes during trading hours, for educational and informational use. This prototype is not investment advice. Data: <a href="https://www.nseindia.in/nse-mcp" target="_blank" rel="noopener noreferrer">NSE MCP</a>.</footer>
         </section>
         <section class="view" id="view-research">
-          <div class="page-heading"><div><div class="eyebrow">PULL · COMPANY INTELLIGENCE</div><h1>Research a company</h1><p class="subhead">Transparent sample figures, with source discovery links.</p></div><div class="source-note">Primary sources first <span>↗</span></div></div>
-          <div class="search-box"><span>⌕</span><input id="company-search" type="search" placeholder="Search companies or enter any NSE ticker…" aria-label="Search companies"><kbd>⌘ K</kbd></div>
-          <div class="company-chips" id="company-chips"></div>
-          <div class="saved-research" id="saved-research" hidden></div>
-          <p class="search-helper">16 portfolio companies · 5 outside-portfolio examples · press Enter for any NSE ticker</p>
-          <div id="research-card"></div>
-          <footer class="disclaimer">Sample research content and illustrative figures. Links open source discovery pages, not the specific documents shown; verify before relying on anything.</footer>
+          <div class="page-heading"><div><div class="eyebrow">OFFICIAL EXCHANGE DATA</div><h1>Company research</h1><p class="subhead">Live quote, end-of-day price history and primary disclosures.</p></div><span class="source-note">NSE source links <span>↗</span></span></div>
+          <label class="search-box"><span aria-hidden="true">⌕</span><input id="company-search" type="search" placeholder="Search an NSE company or symbol…" autocomplete="off" aria-label="Search NSE companies"><kbd>⌘ K</kbd></label>
+          <div class="company-chips" id="company-chips" aria-live="polite"></div>
+          <div id="research-card"><div class="panel research-placeholder"><span class="empty-star" aria-hidden="true">⌕</span><h2>Choose a listed company</h2><p>Search by company name or NSE symbol to load its latest exchange quote, price history and official announcements.</p></div></div>
+          <footer class="disclaimer">Intraday quotes may be delayed; historical prices are end-of-day. Financial statements are not included in this exchange market feed. Verify company claims in the linked primary disclosure.</footer>
         </section>
         <section class="view" id="view-network">
-          <div class="page-heading"><div><div class="eyebrow">THE NETWORK · PRIVATE BY DESIGN</div><h1>People who can add context</h1><p class="subhead">A quiet advantage, surfaced when it’s useful.</p></div><button class="quiet-btn" id="privacy-btn">⌑ <span>Privacy settings</span></button></div>
-          <div class="network-hero"><div><span class="eyebrow">YOUR MOCK NETWORK</span><h2>Useful context lives one connection away.</h2><p>Explore the people and experience that could help you understand a company, sector, or event.</p><button class="primary-btn" id="network-question">Ask your network <span>→</span></button></div><div class="network-orbit"><span class="orbit orbit-a"></span><span class="orbit orbit-b"></span><div class="orbit-center">S</div><div class="orbit-node node-a">RK</div><div class="orbit-node node-b">PM</div><div class="orbit-node node-c">NV</div><div class="orbit-node node-d">SK</div></div></div>
-          <div class="network-toolbar"><div><h2>People in your network</h2><p>6 sample profiles · Synthetic demo data</p></div><div class="search-box small-search"><span>⌕</span><input id="people-search" type="search" placeholder="Search people or expertise…"></div></div>
-          <div class="people-grid" id="people-grid"></div>
-          <div class="privacy-callout"><span class="privacy-icon">⌑</span><div><b>Your network stays yours.</b><p>This prototype uses synthetic profiles only. A real deployment would require explicit consent, private-by-default storage, access controls, and a clear deletion path.</p></div><button class="text-btn" id="privacy-details">How privacy works <span>→</span></button></div>
-          <footer class="disclaimer">No real people or professional profiles are included in this demo.</footer>
+          <div class="page-heading"><div><div class="eyebrow">PRIVATE BY DESIGN</div><h1>Network context</h1><p class="subhead">Connect a real contact source only when you choose to.</p></div></div>
+          <div class="panel network-empty-state"><span class="privacy-icon" aria-hidden="true">◎</span><h2>No contacts connected</h2><p>There are no sample profiles here. A real professional network connection would require your account authorization and your contacts’ privacy settings.</p><span class="source-label">Nothing is imported or sent</span></div>
+          <footer class="disclaimer">This prototype does not access contacts, messages or professional-network accounts.</footer>
         </section>
         <section class="view" id="view-portfolio">
-          <div class="page-heading"><div><div class="eyebrow">YOUR INVESTMENT WORKSPACE</div><h1>Portfolio</h1><p class="subhead">Track the companies on your sample portfolio and open their research.</p></div><button class="quiet-btn" type="button" data-go-view="watchlist">☆ <span>Open watchlist</span></button></div>
+          <div class="page-heading"><div><div class="eyebrow">YOUR INVESTMENT WORKSPACE</div><h1>Portfolio</h1><p class="subhead">Track companies you add. Quotes are fetched from the NSE feed.</p></div><button class="quiet-btn" type="button" data-go-view="research">＋ <span>Find companies</span></button></div>
           <div class="portfolio-summary" id="portfolio-summary" aria-live="polite"></div>
-          <div class="portfolio-toolbar"><label class="search-box"><span>⌕</span><input id="portfolio-search" type="search" placeholder="Search portfolio companies…" aria-label="Search portfolio companies"></label><span class="source-label">SAMPLE PORTFOLIO · NO LIVE POSITIONS</span></div>
+          <div class="portfolio-toolbar"><label class="search-box"><span aria-hidden="true">⌕</span><input id="portfolio-search" type="search" placeholder="Filter tracked companies…" aria-label="Filter portfolio companies"></label><span class="source-label">SAVED ON THIS DEVICE</span></div>
           <div class="portfolio-grid" id="portfolio-list" aria-live="polite"></div>
-          <footer class="disclaimer">Company coverage is illustrative. Share quantities, purchase prices, portfolio value, and returns are not available in this prototype.</footer>
+          <footer class="disclaimer">This portfolio tracks company quotes only. It does not store positions, quantities, purchase prices or returns.</footer>
         </section>
         <section class="view" id="view-watchlist">
-          <div class="page-heading"><div><div class="eyebrow">YOUR READING QUEUE</div><h1>Watchlist</h1><p class="subhead">Keep companies close for your next research session.</p></div><button class="quiet-btn" type="button" data-go-view="research">＋ <span>Find companies</span></button></div>
+          <div class="page-heading"><div><div class="eyebrow">YOUR READING QUEUE</div><h1>Watchlist</h1><p class="subhead">Save listed companies for your next research session.</p></div><button class="quiet-btn" type="button" data-go-view="research">＋ <span>Find companies</span></button></div>
           <div class="watchlist-summary" id="watchlist-summary" aria-live="polite"></div>
           <div class="portfolio-grid" id="watchlist-list" aria-live="polite"></div>
-          <footer class="disclaimer">Your watchlist is saved on this device in this browser. It is not synced to an account.</footer>
+          <footer class="disclaimer">Your watchlist is stored in this browser and is not synced to an account.</footer>
         </section>
       </div>
     </main>
   </div>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div><div class="modal-backdrop" id="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" id="modal-close" aria-label="Close">×</button><div class="eyebrow" id="modal-eyebrow">FINN</div><h2 id="modal-title"></h2><div id="modal-body"></div></div></div>
-  <script src="app.js?v=flow-audit-20261110"></script>
-  <script src="analysis.js?v=portfolio-watchlist-20261115"></script>
-  <script src="portfolio.js?v=portfolio-watchlist-20261115"></script>
-  <script src="enhancements.js?v=glass-phone-20261114"></script>
-  <script src="ai-config.js?v=ai-mvp-20261115-v2"></script>
-  <script src="ask-finn.js?v=gemini-20261115-v5"></script>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="modal-backdrop" id="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" id="modal-close" aria-label="Close">×</button><div class="eyebrow" id="modal-eyebrow">FINN</div><h2 id="modal-title"></h2><div id="modal-body"></div></div></div>
+  <script src="enhancements.js?v=liquid-glass-refraction-20261115-v1"></script>
+  <script src="ai-config.js?v=live-nse-20261115-v1"></script>
+  <script src="live-market.js?v=live-nse-20261115-v1"></script>
+  <script src="ask-finn.js?v=live-nse-20261115-v1"></script>
 </body>
 </html>
