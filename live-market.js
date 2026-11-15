@@ -10,6 +10,8 @@
     view: "home", overview: null, movers: [], moverFilter: "all", moverMode: "live", moverDate: "", search: [], selected: null,
     companies: new Map(), portfolio: read(storage.portfolio), watchlist: read(storage.watchlist), searchTimer: 0
   };
+  let overviewLoading = false;
+  let lastOverviewSuccessAt = 0;
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
   const titleCase = (value) => String(value || "").replace(/[_-]+/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
   const normKey = (key) => String(key).toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -226,24 +228,36 @@
     list.innerHTML = items.map((item) => `<button type="button" class="feed-card live-mover" data-symbol="${esc(item.symbol)}" aria-label="Open ${esc(item.name)} research"><span class="priority-bar ${item.direction === "up" ? "low" : "high"}"></span><span class="company-logo">${esc(item.symbol.slice(0, 5))}</span><span class="card-main"><span class="card-meta"><span class="ticker">${esc(item.symbol)}</span><span class="tag ${item.direction === "up" ? "results" : "market"}">${item.direction === "up" ? "Gainer" : "Loser"}</span></span><span class="feed-title">${esc(item.name)}</span><span class="feed-copy">${item.mode === "eod" ? `Official NSE end-of-day data for ${esc(state.moverDate || "the latest trading session")}.` : "Official NSE market-mover data."} Tap to open company research.</span></span><span class="card-right"><span class="move ${item.direction}">${formatPercent(item.quote.change)}</span><small>${item.quote.price == null ? "Price unavailable" : `₹${formatNumber(item.quote.price)}`}</small></span></button>`).join("");
   }
   async function loadOverview() {
+    if (overviewLoading) return;
+    overviewLoading = true;
     const refresh = $("#refresh-btn");
     if (refresh) { refresh.disabled = true; refresh.setAttribute("aria-busy", "true"); }
     try {
       const payload = await request({ view: "overview" });
       state.overview = payload;
       state.movers = normalizeMovers(payload);
+      lastOverviewSuccessAt = Date.now();
+      $("#market-strip")?.classList.remove("is-stale");
+      $("#feed")?.removeAttribute("aria-label");
       renderIndices(payload);
       renderMovers();
     } catch (error) {
-      state.overview = null;
-      state.movers = [];
-      const stamp = $("#market-asof");
-      if (stamp) stamp.textContent = "NSE feed temporarily unavailable";
-      renderIndices(null);
-      renderMovers();
-      const list = $("#feed");
-      if (list && error?.message) list.setAttribute("aria-label", error.message);
+      if (state.overview) {
+        $("#market-strip")?.classList.add("is-stale");
+        const stamp = $("#market-asof");
+        if (stamp) stamp.textContent = "Showing the last successful NSE update · refresh failed";
+        const list = $("#feed");
+        if (list && error?.message) list.setAttribute("aria-label", `Refresh failed. Showing the last successful NSE data. ${error.message}`);
+      } else {
+        const stamp = $("#market-asof");
+        if (stamp) stamp.textContent = "NSE feed temporarily unavailable";
+        renderIndices(null);
+        renderMovers();
+        const list = $("#feed");
+        if (list && error?.message) list.setAttribute("aria-label", error.message);
+      }
     } finally {
+      overviewLoading = false;
       if (refresh) { refresh.disabled = false; refresh.removeAttribute("aria-busy"); }
     }
   }
@@ -344,7 +358,12 @@
     const line = points.map(([x, y], index) => `${index ? "L" : "M"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
     const area = `${line} L ${points.at(-1)[0].toFixed(1)} 210 L ${points[0][0].toFixed(1)} 210 Z`;
     const direction = values.at(-1) >= values[0] ? "up" : "down";
-    return `<div class="price-chart-wrap"><div class="price-chart-top"><span>${esc(history[0].date || "Historical")}</span><span>${esc(history.at(-1).date || "Latest EOD")}</span></div><svg class="price-chart ${direction}" viewBox="0 0 1000 220" preserveAspectRatio="none" role="img" aria-label="${esc(name)} end-of-day price history"><defs><linearGradient id="priceGradient" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="var(--glass-chart)" stop-opacity=".28"/><stop offset="100%" stop-color="var(--glass-chart)" stop-opacity="0"/></linearGradient></defs><path class="pulse-grid" d="M0 42H1000 M0 94H1000 M0 146H1000 M0 198H1000"/><path class="price-area" d="${area}"/><path class="price-line" d="${line}"/></svg></div><div class="chart-foot">${history.length} actual end-of-day observations · <a href="https://www.nseindia.in/nse-mcp" target="_blank" rel="noopener noreferrer">NSE source ↗</a></div>`;
+    const gradientId = `priceGradient-${String(name).toLowerCase().replace(/[^a-z0-9]+/g, "-") || "series"}`;
+    const markerEvery = Math.max(1, Math.ceil(points.length / 8));
+    const markers = points.map(([x, y], index) => index % markerEvery === 0 || index === points.length - 1
+      ? `<circle class="price-point" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3"><title>${esc(history[index].date || "End of day")} · ₹${formatNumber(values[index])}</title></circle>`
+      : "").join("");
+    return `<div class="price-chart-wrap"><div class="price-chart-top"><span>${esc(history[0].date || "Historical")}</span><span>${esc(history.at(-1).date || "Latest EOD")}</span></div><svg class="price-chart ${direction}" viewBox="0 0 1000 220" preserveAspectRatio="none" role="img" aria-label="${esc(name)} end-of-day price history from ${esc(history[0].date || "the earliest close")} to ${esc(history.at(-1).date || "the latest close")}"><defs><linearGradient id="${gradientId}" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="var(--glass-chart)" stop-opacity=".28"/><stop offset="100%" stop-color="var(--glass-chart)" stop-opacity="0"/></linearGradient></defs><path class="pulse-grid" d="M0 42H1000 M0 94H1000 M0 146H1000 M0 198H1000"/><path class="price-area" style="fill:url(#${gradientId})" d="${area}"/><path class="price-line" d="${line}"/>${markers}</svg><div class="chart-range" aria-label="Price range for the displayed history"><span><small>LOW</small><b>₹${formatNumber(min)}</b></span><span><small>HIGH</small><b>₹${formatNumber(max)}</b></span><span><small>LATEST CLOSE</small><b>₹${formatNumber(values.at(-1))}</b></span></div></div><div class="chart-foot">${history.length} actual end-of-day observations · hover the chart points for dated closes · <a href="https://www.nseindia.in/nse-mcp" target="_blank" rel="noopener noreferrer">NSE source ↗</a></div>`;
   }
   async function ensureCompany(symbol, suggestedName = symbol, open = true) {
     symbol = String(symbol || "").toUpperCase();
@@ -485,5 +504,8 @@
   const initialView = location.hash.slice(1);
   if (initialView) navigate(initialView, { fromHash: true });
   loadOverview();
-  window.setInterval(loadOverview, 60_000);
+  window.setInterval(() => { if (!document.hidden) loadOverview(); }, 60_000);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && Date.now() - lastOverviewSuccessAt >= 60_000) loadOverview();
+  });
 })();
