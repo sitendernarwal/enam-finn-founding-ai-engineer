@@ -18,6 +18,6 @@ From this folder, run `python3 -m http.server 8000` and open `http://localhost:8
 
 ## Data and review limits
 
-NSE says intraday data may be delayed by 1–3 minutes and is for educational/informational use. Outside market hours, the interface can show the latest dated end-of-day close while live movers are unavailable. The integrated market feed does not provide verified quarterly financial statements, so fundamentals remain unavailable until checked against company filings. Ask FINN summarizes announcement metadata; it does not claim to read PDF attachments. Review NSE's [data terms](https://www.nseindia.in/nse-mcp) before reuse. This prototype is not investment advice.
+NSE says intraday data may be delayed by 1–3 minutes and is for educational/informational use. Outside market hours, the interface uses dated end-of-day closes and top movers from the latest completed NSE session. The integrated market feed does not provide verified quarterly financial statements, so fundamentals remain unavailable until checked against company filings. Ask FINN summarizes announcement metadata; it does not claim to read PDF attachments. Review NSE's [data terms](https://www.nseindia.in/nse-mcp) before reuse. This prototype is not investment advice.
 
 The current frontend was checked at a 390 px phone viewport. GitHub Pages rebuilds after changes to `main`; check the repository's Actions tab if an update has not appeared.
