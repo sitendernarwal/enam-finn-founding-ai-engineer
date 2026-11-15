@@ -914,8 +914,8 @@ input,select,textarea { color: var(--ink); }
   .topbar { margin-inline: 8px; }
   .top-actions { gap: 6px; }
   .demo-pill { max-width: 118px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .chart-heading { align-items: flex-start; }
-  .chart-heading .source-label { max-width: 44%; white-space: normal; text-align: right; line-height: 1.35; }
+  .chart-heading { align-items: flex-start; flex-direction: column; gap: 7px; }
+  .chart-heading .source-label { max-width: none; white-space: nowrap; text-align: left; line-height: 1.35; }
   .market-chart .price-chart { height: 145px; }
   .chart-foot { align-items: flex-start; flex-direction: column; gap: 4px; }
   .card-right { min-width: 60px; }
