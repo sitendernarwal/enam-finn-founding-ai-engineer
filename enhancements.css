@@ -666,7 +666,6 @@ html[data-theme="dark"] .analysis-note a { color:var(--glass-chart); }
 
 /* Liquid glass uses the linked SVG refraction technique where browser support exists. */
 .sidebar,.topbar,.market-strip,.search-box {
-  position:relative;
   isolation:isolate;
   border-color:rgba(255,255,255,.19);
   background-image:linear-gradient(145deg,rgba(255,255,255,.085),rgba(255,255,255,.018));
@@ -691,6 +690,7 @@ html[data-theme="dark"] .sidebar,html[data-theme="dark"] .topbar,html[data-theme
   background-image:linear-gradient(145deg,rgba(255,255,255,.085),rgba(11,16,22,.37));
   box-shadow:0 18px 48px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.16);
 }
+.market-strip,.search-box { position:relative; }
 @media (max-width:700px) {
   .sidebar { bottom:calc(9px + env(safe-area-inset-bottom)); left:10px; right:10px; height:66px; border:1px solid rgba(255,255,255,.2); border-radius:24px; padding:5px 8px; }
   .nav { gap:3px; }
