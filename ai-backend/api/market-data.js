@@ -1,3 +1,6 @@
+import { cachedData, timedStages } from "../lib/data-cache.js";
+import { getFilings, NSE_FILINGS_PAGE } from "../lib/nse-filings.js";
+
 const ALLOWED_ORIGINS = new Set([
   "https://sitendernarwal.github.io",
   "http://localhost:3000",
@@ -7,15 +10,10 @@ const ALLOWED_ORIGINS = new Set([
 ]);
 const NSE_LIVE_MCP = "https://mcp.nseindia.in/cmmkt/mcp";
 const NSE_EOD_MCP = "https://mcp.nseindia.in/bhavcopy/cm/mcp";
-const NSE_FILINGS_API = "https://www.nseindia.com/api/corporate-announcements";
-const NSE_FILINGS_PAGE = "https://www.nseindia.in/companies-listing/corporate-filings-announcements";
-const TTL_MS = 45_000;
-const responseCache = globalThis.__finnMarketDataCache || (globalThis.__finnMarketDataCache = new Map());
-
 function send(res, status, payload, headers = {}) {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Cache-Control", "public, max-age=15, stale-while-revalidate=30");
+  res.setHeader("Cache-Control", status === 200 ? "public, max-age=15" : "no-store");
   for (const [name, value] of Object.entries(headers)) res.setHeader(name, value);
   res.end(JSON.stringify(payload));
 }
@@ -74,10 +72,13 @@ async function withMcp(endpoint, work) {
     try {
       await rpcPost(endpoint, sessionId, { jsonrpc: "2.0", method: "notifications/initialized" }, controller.signal);
     } catch { /* Some compatible servers return no body for notifications. */ }
-    const listed = await rpcPost(endpoint, sessionId, { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }, controller.signal);
-    if (listed.data?.error) throw new Error("NSE_MCP_TOOLS_UNAVAILABLE");
-    const tools = listed.data?.result?.tools || [];
-    if (!tools.length) throw new Error("NSE_MCP_NO_TOOLS");
+    const { value: tools } = await cachedData(`mcp-tools:${endpoint}`, { ttl: 300 }, async () => {
+      const listed = await rpcPost(endpoint, sessionId, { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }, controller.signal);
+      if (listed.data?.error) throw new Error("NSE_MCP_TOOLS_UNAVAILABLE");
+      const available = listed.data?.result?.tools || [];
+      if (!available.length) throw new Error("NSE_MCP_NO_TOOLS");
+      return available;
+    });
     return await work({ tools, sessionId, signal: controller.signal });
   } finally {
     clearTimeout(timeout);
@@ -173,67 +174,16 @@ function listFrom(value) {
   return [];
 }
 
-function safeFilingUrl(value, title) {
-  try {
-    const parsed = new URL(value, "https://www.nseindia.in");
-    const host = parsed.hostname.toLowerCase();
-    if (parsed.protocol !== "https:" || !(host === "nseindia.in" || host.endsWith(".nseindia.in") || host === "nseindia.com" || host.endsWith(".nseindia.com"))) return null;
-    return { title: String(title || "NSE disclosure").slice(0, 160), url: parsed.href };
-  } catch { return null; }
-}
-
-function normalizeAnnouncement(record) {
-  const title = String(record?.desc || record?.subject || record?.sub || record?.category || "NSE disclosure").trim();
-  const details = String(record?.attchmntText || record?.attachmentText || record?.announcementText || record?.description || "").trim();
-  const date = String(record?.an_dt || record?.dissemDT || record?.broadcast_date || record?.date || "").trim();
-  const attachment = safeFilingUrl(record?.attchmntFile || record?.attachment_file || record?.attachment || record?.file_url || "", title);
-  return { title, details, date, source: attachment };
-}
-
 async function getAnnouncements(symbol) {
-  const now = new Date();
-  const from = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-  const date = (value) => new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", day: "2-digit", month: "2-digit", year: "numeric" }).format(value);
-  const url = new URL(NSE_FILINGS_API);
-  url.searchParams.set("index", "equities");
-  url.searchParams.set("symbol", symbol);
-  url.searchParams.set("from_date", date(from));
-  url.searchParams.set("to_date", date(now));
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 7_000);
   try {
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        Accept: "application/json, text/plain, */*",
-        "Accept-Language": "en-US,en;q=0.9",
-        Referer: NSE_FILINGS_PAGE,
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
-      }
-    });
-    if (!response.ok) return { sourceUrl: NSE_FILINGS_PAGE, items: [], available: false };
-    const payload = await response.json();
-    const rows = Array.isArray(payload) ? payload : (payload?.data || []);
-    const items = rows.slice(0, 10).map(normalizeAnnouncement).filter((item) => item.title || item.details);
-    return { sourceUrl: url.href, items, available: true };
+    const { value } = await getFilings(symbol);
+    const cutoff = Date.now() - 90 * 86400_000;
+    const items = value.items.filter(item => !item.timestamp || item.timestamp >= cutoff).slice(0, 10)
+      .map(({ title, details, date, source }) => ({ title, details, date, source }));
+    return { sourceUrl: value.url, items, available: true };
   } catch {
     return { sourceUrl: NSE_FILINGS_PAGE, items: [], available: false };
-  } finally {
-    clearTimeout(timeout);
   }
-}
-
-function cacheRead(key) {
-  const hit = responseCache.get(key);
-  if (hit && hit.expiry > Date.now()) return hit.value;
-  if (hit) responseCache.delete(key);
-  return null;
-}
-
-function cacheWrite(key, value) {
-  if (responseCache.size > 200) responseCache.clear();
-  responseCache.set(key, { expiry: Date.now() + TTL_MS, value });
-  return value;
 }
 
 async function getLiveOverview() {
@@ -241,21 +191,17 @@ async function getLiveOverview() {
     const indicesTool = findTool(tools, ["cm_get_live_indices"]);
     const gainersTool = findTool(tools, ["cm_get_live_gainers", "nse_get_gainers"]);
     const losersTool = findTool(tools, ["cm_get_live_losers", "nse_get_losers"]);
-    const result = { asOf: new Date().toISOString(), delay: "NSE reports a 1–3 minute delay during trading hours", indices: null, history: null, gainers: null, losers: null, source: "https://www.nseindia.in/nse-mcp" };
-    if (indicesTool) {
-      try { result.indices = await callTool(NSE_LIVE_MCP, indicesTool, { sessionId, signal }); } catch { result.indices = null; }
-    }
-    if (gainersTool) {
-      try { result.gainers = await callTool(NSE_LIVE_MCP, gainersTool, { sessionId, signal }); } catch { result.gainers = null; }
-    }
-    if (losersTool) {
-      try { result.losers = await callTool(NSE_LIVE_MCP, losersTool, { sessionId, signal }); } catch { result.losers = null; }
-    }
-    return result;
+    const [indices, gainers, losers] = await Promise.all([
+      indicesTool && callTool(NSE_LIVE_MCP, indicesTool, { sessionId, signal, id: 3 }).catch(() => null),
+      gainersTool && callTool(NSE_LIVE_MCP, gainersTool, { sessionId, signal, id: 4 }).catch(() => null),
+      losersTool && callTool(NSE_LIVE_MCP, losersTool, { sessionId, signal, id: 5 }).catch(() => null)
+    ]);
+    return { indices, gainers, losers, asOf: new Date().toISOString(),
+      delay: "NSE reports a 1–3 minute delay during trading hours", source: "https://www.nseindia.in/nse-mcp" };
   });
 }
 
-async function getHistoricalOverview() {
+async function fetchHistoricalOverview() {
   try {
     return await withMcp(NSE_EOD_MCP, async ({ tools, sessionId, signal }) => {
         const historyTool = findTool(tools, ["get_index_history"]);
@@ -279,12 +225,17 @@ async function getHistoricalOverview() {
   } catch { return { history: null, bankHistory: null, eodMovers: null }; }
 }
 
-async function getOverview() {
+async function getOverview(timing) {
   // Historical candles are an independent feed. Fetch them alongside live data
   // so an unavailable/slow live quote endpoint does not delay the useful EOD view.
   const [liveResult, historicalResult] = await Promise.allSettled([
-    getLiveOverview(),
-    getHistoricalOverview()
+    timing.run("nse_live", getLiveOverview),
+    timing.run("nse_history", async () => {
+      const { value } = await cachedData("index-history-v1", {
+        ttl: 1800, shared: true, cacheable: data => Boolean(data.history && data.bankHistory && data.eodMovers?.gainers && data.eodMovers?.losers)
+      }, fetchHistoricalOverview);
+      return value;
+    })
   ]);
   const live = liveResult.status === "fulfilled" ? liveResult.value : {
     asOf: new Date().toISOString(),
@@ -295,6 +246,9 @@ async function getOverview() {
   const historical = historicalResult.status === "fulfilled" ? historicalResult.value : {
     history: null, bankHistory: null, eodMovers: null
   };
+  if (![live.indices, live.gainers, live.losers, historical.history, historical.bankHistory].some(value => value != null)) {
+    throw new Error("NSE_OVERVIEW_UNAVAILABLE");
+  }
   return { ...live, ...historical };
 }
 
@@ -324,11 +278,13 @@ async function getCompany(symbol) {
       if (!tool) throw new Error("NSE_MCP_QUOTE_TOOL_UNAVAILABLE");
       return callTool(NSE_LIVE_MCP, tool, { symbol, sessionId, signal });
     }).catch(() => null),
-    withMcp(NSE_EOD_MCP, async ({ tools, sessionId, signal }) => {
-      const tool = findTool(tools, ["get_stock_history"]);
-      if (!tool) throw new Error("NSE_MCP_HISTORY_TOOL_UNAVAILABLE");
-      return callTool(NSE_EOD_MCP, tool, { symbol, sessionId, signal });
-    }).catch(() => null),
+    cachedData(`equity-history:${symbol}`, { ttl: 1800, shared: true, cacheable: value => listFrom(value).length > 0 },
+      () => withMcp(NSE_EOD_MCP, async ({ tools, sessionId, signal }) => {
+        const tool = findTool(tools, ["get_stock_history"]);
+        if (!tool) throw new Error("NSE_MCP_HISTORY_TOOL_UNAVAILABLE");
+        return callTool(NSE_EOD_MCP, tool, { symbol, sessionId, signal });
+      })
+    ).then(({ value }) => value).catch(() => null),
     getAnnouncements(symbol)
   ]);
   if (quote == null && history == null && !announcements.available) throw new Error("NSE_MCP_COMPANY_DATA_UNAVAILABLE");
@@ -364,13 +320,17 @@ export default async function handler(req, res) {
   if (view === "company" && !/^[A-Z0-9&.-]{1,24}$/.test(symbol)) return send(res, 400, { error: "Enter a valid NSE symbol." }, headers);
   if (view === "search" && query.length < 2) return send(res, 400, { error: "Enter at least two letters to search NSE listings." }, headers);
   const key = view === "company" ? `company:${symbol}` : view === "search" ? `search:${query.toUpperCase()}` : "overview";
-  const cached = cacheRead(key);
-  if (cached) return send(res, 200, cached, headers);
-
+  const timing = timedStages(res);
   try {
-    const payload = view === "company" ? await getCompany(symbol) : view === "search" ? await searchCompanies(query) : await getOverview();
-    return send(res, 200, cacheWrite(key, payload), headers);
+    const { value, cache } = await timing.run("market", () => cachedData(key, {
+      ttl: view === "search" ? 600 : 45,
+      cacheable: result => view === "overview" ? Boolean(result.indices || result.history || result.eodMovers)
+        : view === "company" ? Boolean(result.quote || result.history) : result.items.length > 0
+    }, () => view === "company" ? getCompany(symbol) : view === "search" ? searchCompanies(query) : getOverview(timing)));
+    timing.finish();
+    return send(res, 200, value, { ...headers, "X-Finn-Cache": cache });
   } catch (error) {
+    timing.finish();
     const status = error?.name === "AbortError" ? 504 : 503;
     console.error("FINN live NSE lookup failed", String(error?.message || error?.name || "upstream_error").slice(0, 100));
     return send(res, status, {

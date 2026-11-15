@@ -9,7 +9,7 @@
   <title>FINN — Investor intelligence</title>
   <link rel="stylesheet" href="styles.css?v=live-nse-20261115-v2">
   <link rel="stylesheet" href="enhancements.css?v=liquid-glass-20261115-v6">
-  <link rel="stylesheet" href="liquid-glass.css?v=finn-premium-v4">
+  <link rel="stylesheet" href="liquid-glass.css?v=finn-premium-v5">
 </head>
 <body data-app="founding">
   <div class="shell">
@@ -33,6 +33,12 @@
       <div class="content">
         <section class="view active" id="view-home">
           <div class="page-heading"><div><div class="eyebrow">Indian equities <span class="live-dot"></span></div><h1>Market brief</h1><p class="subhead">Exchange data with source links. Prices may be delayed.</p></div><button class="quiet-btn" id="refresh-btn" type="button" aria-label="Refresh market data">↻ <span>Refresh</span></button></div>
+          <div class="market-startup" id="market-startup">
+            <div class="market-loader" role="status">
+              <span class="market-loader-orbit" aria-hidden="true"></span>
+              <span><strong>Sitender is gathering the data</strong><small>Connecting to the official NSE feed</small></span>
+            </div>
+          </div>
           <div class="market-strip" id="market-strip" aria-live="polite"><div data-index="NIFTY 50"><span class="market-label">NIFTY 50</span><b>Loading…</b><span class="market-note">NSE</span></div><div data-index="NIFTY BANK"><span class="market-label">NIFTY BANK</span><b>Loading…</b><span class="market-note">NSE</span></div><div><span class="market-label">WATCHLIST</span><b id="watchlist-market-count">0 companies</b><span class="market-note">On this device</span></div><div class="strip-note" id="market-asof">Loading official NSE data…</div></div>
           <section class="market-chart panel" id="market-chart" aria-label="NIFTY 50 chart"><div class="empty-state" aria-busy="true">Loading NIFTY 50 price history…</div></section>
           <div class="section-head"><div><h2>Live market movers <span class="tiny-count" id="mover-count">—</span></h2><p>Official NSE gainers and losers · delayed during market hours</p></div><div class="filter-row" role="group" aria-label="Filter market movers"><button class="filter active" data-mover-filter="all" aria-pressed="true">All</button><button class="filter" data-mover-filter="gainers" aria-pressed="false">Gainers</button><button class="filter" data-mover-filter="losers" aria-pressed="false">Losers</button></div></div>
@@ -79,10 +85,10 @@
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="modal-backdrop" id="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" id="modal-close" aria-label="Close">×</button><div class="eyebrow" id="modal-eyebrow">FINN</div><h2 id="modal-title"></h2><div id="modal-body"></div></div></div>
-  <script src="enhancements.js?v=finn-lens-v7"></script>
+  <script src="enhancements.js?v=finn-lens-v8"></script>
   <script src="ai-config.js?v=live-nse-20261115-v2"></script>
-  <script src="live-market.js?v=finn-workspace-v2"></script>
+  <script src="live-market.js?v=finn-workspace-v3"></script>
   <script src="product-workflows.js?v=finn-signals-v1"></script>
-  <script src="ask-finn.js?v=live-nse-20261115-v5"></script>
+  <script src="ask-finn.js?v=finn-evidence-v1"></script>
 </body>
 </html>

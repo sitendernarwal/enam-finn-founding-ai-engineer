@@ -8,14 +8,14 @@
         <div>
           <span class="eyebrow">AI · OFFICIAL DISCLOSURES</span>
           <h3 id="finn-ai-heading">Ask FINN</h3>
-          <p class="finn-ai-intro">FINN summarizes NSE announcement metadata. Open official filings for full details.</p>
+          <p class="finn-ai-intro">FINN uses NSE announcements and can read a relevant filing when the document is available.</p>
         </div>
         <span class="finn-ai-badge" id="finn-ai-badge">Checking service</span>
       </div>
       <div class="finn-ai-suggestions" aria-label="Suggested research questions">
         <button type="button" data-finn-question="What does the NSE metadata show for the latest results-related filing? Separate its filing date from the reporting period, and say if the period or figures are not provided.">Results metadata</button>
         <button type="button" data-finn-question="What recent official disclosures could materially affect this company? Include dates and sources.">Recent disclosures</button>
-        <button type="button" data-finn-question="What does the latest official filing say about the company's outlook? Cite the source.">Management outlook</button>
+        <button type="button" data-finn-question="What does the latest relevant investor presentation or earnings filing say about the company's outlook? Cite the source.">Management outlook</button>
       </div>
       <form class="finn-ai-form" data-finn-form>
         <label class="sr-only" for="finn-ai-question">Ask a question about this company</label>
@@ -65,7 +65,7 @@
       if (!currentBadge || !currentStatus || document.querySelector("[data-finn-form] button[type='submit']")?.disabled) return;
       if (configured === true) {
         currentBadge.textContent = "Gemini connected";
-        currentStatus.textContent = "Connected to Gemini 3.5 Flash-Lite with recent NSE announcement metadata. Open the linked filing to verify details; free-tier quotas apply.";
+        currentStatus.textContent = "Connected to Gemini 3.5 Flash-Lite. Ask about NSE disclosures, financial results, or management outlook.";
       } else if (configured === false) {
         currentBadge.textContent = "Service setup required";
         currentStatus.textContent = "Gemini API key is not configured. Add GEMINI_API_KEY to the Vercel project and redeploy the API.";
@@ -171,7 +171,8 @@
         link.href = href;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
-        link.textContent = String(source.title || new URL(href).hostname).slice(0, 180);
+        const reference = Number.isInteger(source.record) ? `[${source.record}] ` : "";
+        link.textContent = reference + String(source.title || new URL(href).hostname).slice(0, 190);
         return link;
       }).filter(Boolean);
       if (sourcesBox) {
@@ -186,7 +187,9 @@
         }
       }
       if (answerBox) answerBox.hidden = false;
-      if (status) status.textContent = "Research response ready from NSE announcement metadata. Open the linked filing to verify details.";
+      if (status) status.textContent = payload.evidence === "filing_pdf"
+        ? "Based on an official filing PDF. Open the cited pages to verify the details."
+        : "Based on NSE announcement metadata. Open the official filing for the full document.";
     } catch (error) {
       if (status) status.textContent = error?.name === "TypeError"
         ? "Could not reach FINN AI. Check that the Vercel API is deployed and connected."

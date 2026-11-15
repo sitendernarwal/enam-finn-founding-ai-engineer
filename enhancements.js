@@ -28,7 +28,8 @@
 
   const surfaces = [
     { selector: ".sidebar", name: "dock", displacement: 16 },
-    { selector: ".topbar", name: "capsule", displacement: 14 }
+    { selector: ".topbar", name: "capsule", displacement: 14 },
+    { selector: ".market-loader", name: "startup", displacement: 23 }
   ];
   for (const glass of surfaces) {
     glass.element = document.querySelector(glass.selector);
