@@ -236,7 +236,7 @@ function cacheWrite(key, value) {
   return value;
 }
 
-async function getOverview() {
+async function getLiveOverview() {
   return withMcp(NSE_LIVE_MCP, async ({ tools, sessionId, signal }) => {
     const indicesTool = findTool(tools, ["cm_get_live_indices"]);
     const gainersTool = findTool(tools, ["cm_get_live_gainers", "nse_get_gainers"]);
@@ -252,9 +252,12 @@ async function getOverview() {
       try { result.losers = await callTool(NSE_LIVE_MCP, losersTool, { sessionId, signal }); } catch { result.losers = null; }
     }
     return result;
-  }).then(async (result) => {
-    try {
-      const historyPayload = await withMcp(NSE_EOD_MCP, async ({ tools, sessionId, signal }) => {
+  });
+}
+
+async function getHistoricalOverview() {
+  try {
+    return await withMcp(NSE_EOD_MCP, async ({ tools, sessionId, signal }) => {
         const historyTool = findTool(tools, ["get_index_history"]);
         const topMoversTool = findTool(tools, ["get_top_movers"]);
         const [history, bankHistory] = historyTool ? await Promise.all([
@@ -264,7 +267,7 @@ async function getOverview() {
         const latestRow = listFrom(history).at(-1);
         const sessionDate = String(latestRow?.date || latestRow?.tradeDate || latestRow?.tradingDate || "");
         let eodMovers = null;
-        if (topMoversTool && sessionDate && (!listFrom(result.gainers).length || !listFrom(result.losers).length)) {
+        if (topMoversTool && sessionDate) {
           const [gainers, losers] = await Promise.all([
             callTool(NSE_EOD_MCP, topMoversTool, { date: sessionDate, direction: "gainers", limit: 5, sessionId, signal, id: 5 }).catch(() => null),
             callTool(NSE_EOD_MCP, topMoversTool, { date: sessionDate, direction: "losers", limit: 5, sessionId, signal, id: 6 }).catch(() => null)
@@ -272,13 +275,27 @@ async function getOverview() {
           eodMovers = { date: sessionDate, gainers, losers, source: "https://www.nseindia.in/nse-mcp" };
         }
         return { history, bankHistory, eodMovers };
-      });
-      result.history = historyPayload?.history || null;
-      result.bankHistory = historyPayload?.bankHistory || null;
-      result.eodMovers = historyPayload?.eodMovers || null;
-    } catch { result.history = null; result.bankHistory = null; result.eodMovers = null; }
-    return result;
-  });
+    });
+  } catch { return { history: null, bankHistory: null, eodMovers: null }; }
+}
+
+async function getOverview() {
+  // Historical candles are an independent feed. Fetch them alongside live data
+  // so an unavailable/slow live quote endpoint does not delay the useful EOD view.
+  const [liveResult, historicalResult] = await Promise.allSettled([
+    getLiveOverview(),
+    getHistoricalOverview()
+  ]);
+  const live = liveResult.status === "fulfilled" ? liveResult.value : {
+    asOf: new Date().toISOString(),
+    delay: "NSE reports a 1–3 minute delay during trading hours",
+    indices: null, gainers: null, losers: null,
+    source: "https://www.nseindia.in/nse-mcp"
+  };
+  const historical = historicalResult.status === "fulfilled" ? historicalResult.value : {
+    history: null, bankHistory: null, eodMovers: null
+  };
+  return { ...live, ...historical };
 }
 
 async function searchCompanies(query) {
