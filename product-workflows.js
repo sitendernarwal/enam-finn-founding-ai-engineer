@@ -38,14 +38,14 @@
   }
 
   function personMarkup(person, compact = false) {
-    const overlap = person.companies.slice(0, 3).map((symbol) => `<button class="person-company" type="button" data-network-company="${esc(symbol)}">${esc(symbol)}</button>`).join("");
+    const overlap = person.companies.slice(0, 3).map((symbol) => `<button class="person-company" type="button" data-network-open-company="${esc(symbol)}">${esc(symbol)}</button>`).join("");
     return `<article class="person-card" data-person-card data-person-companies="${esc(person.companies.join(" "))}" data-person-sector="${esc(person.sector.toLowerCase())}" data-person-expertise="${esc(person.expertise.join(" ").toLowerCase())}" data-person-reconnect="${person.daysSince >= 55}">
       <div class="person-head"><span class="person-avatar">${esc(person.initials)}</span><div><b>${esc(person.name)}</b><small>${esc(person.role)}</small></div><span class="person-flag">Synthetic</span></div>
       <p class="connection"><b>${esc(person.path)}</b><br>${esc(person.employer)}</p>
       <div class="person-overlap"><b>Company context</b><br>${esc(person.companies.join(" · "))}</div>
       <div class="person-expertise">${person.expertise.map((label) => `<span class="expertise">${esc(label)}</span>`).join("")}</div>
       ${compact ? `<p class="person-reconnect">${esc(person.reconnect)}</p>` : `<p class="person-reconnect">${esc(person.daysSince)} days since last conversation · synthetic scenario</p>`}
-      <div class="person-links">${overlap}<button class="person-link" type="button" data-network-company="${esc(person.companies[0])}">Explore company context <span aria-hidden="true">↗</span></button></div>
+      <div class="person-links">${overlap}<button class="person-link" type="button" data-network-open-company="${esc(person.companies[0])}">Explore company context <span aria-hidden="true">↗</span></button></div>
     </article>`;
   }
 
@@ -218,6 +218,14 @@
       }));
       document.addEventListener("click", (event) => {
         const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+        const companyTrigger = target?.closest("[data-network-open-company]");
+        if (companyTrigger) {
+          const symbol = companyTrigger.dataset.networkOpenCompany;
+          if (!symbol) return;
+          event.preventDefault();
+          window.FINN_LIVE?.openCompany(symbol);
+          return;
+        }
         const trigger = target?.closest("[data-network-company]");
         if (!trigger) return;
         const symbol = trigger.dataset.networkCompany;
