@@ -17,7 +17,7 @@ Then open `http://localhost:8000`. NSE market data and Ask FINN are remote servi
 
 ## Live data and AI
 
-The Market and Research views request live and end-of-day market data from the official NSE MCP service through the shared Vercel API. NSE reports a 1–3 minute delay during trading hours. Stock research displays the exchange quote, returned historical closes, and NSE corporate-announcement metadata with official filing links. Quarterly revenue, EBITDA, profit, and market capitalization are not supplied by this feed and are left unavailable rather than estimated.
+The Market and Research views request live and end-of-day market data from the official NSE MCP service through the shared Vercel API. NSE reports a 1–3 minute delay during trading hours. If live movers are unavailable outside market hours, Market falls back to verified gainers and losers from the latest NSE trading session; both NIFTY 50 and NIFTY Bank show their latest dated closes. Stock research displays the exchange quote, returned historical closes, and NSE corporate-announcement metadata with official filing links. Quarterly revenue, EBITDA, profit, and market capitalization are not supplied by this feed and are left unavailable rather than estimated.
 
 Ask FINN uses Gemini 3.5 Flash-Lite on the server. It summarizes recent NSE announcement metadata and returns official filing links separately; it does not claim to read an attachment unless its contents are provided. The API key remains in Vercel and is never sent to the browser. See [ai-backend/README.md](ai-backend/README.md) for service details.
 
