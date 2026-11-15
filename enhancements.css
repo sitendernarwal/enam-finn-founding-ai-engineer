@@ -699,6 +699,7 @@ html[data-theme="dark"] .sidebar,html[data-theme="dark"] .topbar,html[data-theme
   .market-strip { overflow-x:auto; scrollbar-width:none; border-radius:20px; gap:16px; }
   .market-strip::-webkit-scrollbar { display:none; }
   .market-strip>div:not(.strip-note) { min-width:max-content; }
+  .market-strip .strip-note { display:block!important; grid-column:1/-1; margin:0; text-align:left; line-height:1.45; }
   .market-chart { padding:16px; border-radius:20px; }
   .chart-unavailable { align-items:flex-start; flex-direction:column; gap:5px; }
   .price-chart { height:130px; }
