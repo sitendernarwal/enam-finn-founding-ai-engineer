@@ -39,18 +39,16 @@
     const image = context.createImageData(width, height);
     const halfWidth = width / 2;
     const halfHeight = height / 2;
-    const radius = mode === "squircle" ? Math.min(width, height) * .19 : Math.min(height * .48, width * .2);
-    const innerWidth = Math.max(1, halfWidth - radius);
-    const innerHeight = Math.max(1, halfHeight - radius);
-    const bevel = Math.max(8, Math.min(width, height) * .17);
+    const innerWidth = Math.max(1, halfWidth);
+    const innerHeight = Math.max(1, halfHeight);
     for (let y = 0; y < height; y += 1) {
       for (let x = 0; x < width; x += 1) {
         const nx = (x - halfWidth) / innerWidth;
         const ny = (y - halfHeight) / innerHeight;
-        const exponent = mode === "squircle" ? 4 : 2;
+        const exponent = mode === "squircle" ? 4 : 8;
         const radial = (Math.abs(nx) ** exponent + Math.abs(ny) ** exponent) ** (1 / exponent);
         const r2 = radial * radial;
-        const edge = Math.max(0, Math.min(1, (radial - .61) / .43));
+        const edge = Math.max(0, Math.min(1, (radial - .64) / .34));
         const curve = edge * edge * (3 - 2 * edge);
         const offset = (y * width + x) * 4;
         if (heightOnly) {
@@ -60,10 +58,12 @@
           image.data[offset + 2] = 255;
           image.data[offset + 3] = Math.round(convexHeight * 255);
         } else {
-          const nxLength = Math.hypot(nx, ny) || 1;
+          const slopeX = nx / innerWidth;
+          const slopeY = ny / innerHeight;
+          const nxLength = Math.hypot(slopeX, slopeY) || 1;
           const strength = curve * normalStrength;
-          image.data[offset] = Math.max(0, Math.min(255, Math.round(128 - nx / nxLength * strength * 112)));
-          image.data[offset + 1] = Math.max(0, Math.min(255, Math.round(128 - ny / nxLength * strength * 112)));
+          image.data[offset] = Math.max(0, Math.min(255, Math.round(128 - slopeX / nxLength * strength * 112)));
+          image.data[offset + 1] = Math.max(0, Math.min(255, Math.round(128 - slopeY / nxLength * strength * 112)));
           image.data[offset + 2] = 128;
           image.data[offset + 3] = 255;
         }
@@ -145,9 +145,9 @@
     svg.style.cssText = "position:fixed;width:0;height:0;overflow:hidden;pointer-events:none";
     const defs = document.createElementNS(svgNS, "defs");
     const variants = [
-      { id: "finn-glass-wide", width: 640, height: 190, mode: "pill", scale: 42, strength: .68 },
-      { id: "finn-glass-capsule", width: 480, height: 220, mode: "squircle", scale: 38, strength: .68 },
-      { id: "finn-glass-dock", width: 720, height: 176, mode: "pill", scale: 48, strength: .76 }
+      { id: "finn-glass-wide", width: 640, height: 190, mode: "pill", scale: 58, strength: .88 },
+      { id: "finn-glass-capsule", width: 480, height: 220, mode: "squircle", scale: 54, strength: .90 },
+      { id: "finn-glass-dock", width: 720, height: 176, mode: "pill", scale: 72, strength: 1.0 }
     ];
     for (const variant of variants) {
       addSvgFilter(defs, variant.id, makeGlassMap(variant.width, variant.height, variant.mode, false, variant.strength), makeGlassMap(variant.width, variant.height, variant.mode, true), variant.scale);
