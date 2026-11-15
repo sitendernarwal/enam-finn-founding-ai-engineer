@@ -7,7 +7,7 @@
   const appId = document.body.dataset.app === "ai-engineer" ? "ai-engineer" : "founding-ai-engineer";
   const storage = { portfolio: `finn-live-portfolio-${appId}`, watchlist: `finn-live-watchlist-${appId}` };
   const state = {
-    view: "home", overview: null, movers: [], moverFilter: "all", search: [], selected: null,
+    view: "home", overview: null, movers: [], moverFilter: "all", moverMode: "live", moverDate: "", search: [], selected: null,
     companies: new Map(), portfolio: read(storage.portfolio), watchlist: read(storage.watchlist), searchTimer: 0
   };
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
@@ -138,18 +138,19 @@
   }
   function renderIndices(payload) {
     const indices = indexRows(payload?.indices);
-    const historicalRows = numberList(payload?.history);
-    const lastIndexClose = historicalRows.at(-1);
-    const indexClose = lastIndexClose ? {
-      name: "NIFTY 50", price: numeric(field(lastIndexClose, ["close", "last", "value"])),
-      change: numeric(field(lastIndexClose, ["pctChange", "percentChange", "pChange"])),
-      date: String(field(lastIndexClose, ["date", "tradeDate", "tradingDate"]) || ""), eod: true
-    } : null;
     const strip = $("#market-strip");
     for (const label of ["NIFTY 50", "NIFTY BANK"]) {
       const target = $(`[data-index="${label}"]`, strip);
       if (!target) continue;
-      const found = indices.find((item) => item.name.includes(label)) || (label === "NIFTY 50" ? indexClose : null);
+      const history = numberList(label === "NIFTY 50" ? payload?.history : payload?.bankHistory);
+      const lastClose = history.at(-1);
+      const historicalIndex = lastClose ? {
+        name: label,
+        price: numeric(field(lastClose, ["close", "last", "value"])),
+        change: numeric(field(lastClose, ["pctChange", "percentChange", "pChange"])),
+        date: String(field(lastClose, ["date", "tradeDate", "tradingDate"]) || ""), eod: true
+      } : null;
+      const found = indices.find((item) => item.name.includes(label)) || historicalIndex;
       const priceNode = $("b", target);
       let changeNode = $(".market-move", target);
       if (!changeNode) {
@@ -173,7 +174,9 @@
     const counts = $$("#watchlist-market-count, #portfolio-mini-count");
     counts.forEach((node) => { node.textContent = node.id === "watchlist-market-count" ? `${state.watchlist.length} companies` : String(state.portfolio.length); });
     const stamp = $("#market-asof");
-    if (stamp) stamp.textContent = `${marketStamp(payload?.asOf)} · NSE may delay 1–3 min`;
+    const liveAvailable = indices.some((item) => item.price != null);
+    const latestDate = String(field(numberList(payload?.history).at(-1), ["date", "tradeDate", "tradingDate"]) || payload?.eodMovers?.date || "");
+    if (stamp) stamp.textContent = !liveAvailable && latestDate ? `Latest NSE session · ${latestDate} · end of day` : `${marketStamp(payload?.asOf)} · NSE may delay 1–3 min`;
     renderIndexChart(indices.find((item) => item.name.includes("NIFTY 50")));
   }
   function renderIndexChart(index) {
@@ -184,27 +187,43 @@
     card.innerHTML = `<div class="chart-heading"><div><span class="eyebrow">MARKET SNAPSHOT · END OF DAY</span><h2>NIFTY 50</h2></div><span class="source-label">${series ? `${history.length} ACTUAL DAILY CLOSES` : index?.price == null ? "LIVE SERIES UNAVAILABLE" : "LATEST INDEX VALUE"}</span></div>${series || `<div class="chart-unavailable">${index?.price == null ? "Historical index values are unavailable right now. No synthetic chart is shown." : `<strong>${formatNumber(index.price)}</strong><span>${formatPercent(index.change)} · latest value reported by NSE</span>`}</div>`}<div class="chart-foot">Intraday delay: 1–3 minutes · historical values are end-of-day · <a href="https://www.nseindia.in/nse-mcp" target="_blank" rel="noopener noreferrer">NSE source ↗</a></div>`;
   }
   function normalizeMovers(payload) {
-    const gainers = rowsFrom(payload?.gainers).map((raw) => ({ raw, direction: "up" }));
-    const losers = rowsFrom(payload?.losers).map((raw) => ({ raw, direction: "down" }));
-    const unique = new Map();
-    for (const item of [...gainers, ...losers]) {
-      const symbol = symbolOf(item.raw);
-      const quote = quoteOf(item.raw);
-      if (!symbol) continue;
-      unique.set(symbol, { symbol, name: nameOf(item.raw), quote, direction: quote.change == null ? item.direction : quote.change >= 0 ? "up" : "down", raw: item.raw });
+    const collect = (source, mode) => {
+      const gainers = rowsFrom(source?.gainers).map((raw) => ({ raw, direction: "up" }));
+      const losers = rowsFrom(source?.losers).map((raw) => ({ raw, direction: "down" }));
+      const unique = new Map();
+      for (const item of [...gainers, ...losers]) {
+        const symbol = symbolOf(item.raw);
+        const quote = quoteOf(item.raw);
+        if (!symbol) continue;
+        unique.set(symbol, { symbol, name: nameOf(item.raw), quote, direction: quote.change == null ? item.direction : quote.change >= 0 ? "up" : "down", raw: item.raw, mode });
+      }
+      return [...unique.values()];
     }
-    return [...unique.values()];
+    const live = collect(payload, "live");
+    if (live.length) {
+      state.moverMode = "live";
+      state.moverDate = "";
+      return live;
+    }
+    const endOfDay = collect(payload?.eodMovers, "eod");
+    state.moverMode = endOfDay.length ? "eod" : "live";
+    state.moverDate = String(payload?.eodMovers?.date || "");
+    return endOfDay;
   }
   function renderMovers() {
     const items = state.movers.filter((item) => state.moverFilter === "all" || (state.moverFilter === "gainers" ? item.direction === "up" : item.direction === "down"));
     const list = $("#feed");
     const count = $("#mover-count");
+    const heading = $(".section-head h2");
+    const subtitle = $(".section-head p");
+    if (heading?.firstChild) heading.firstChild.textContent = state.moverMode === "eod" ? "Latest NSE session movers " : "Live market movers ";
+    if (subtitle) subtitle.textContent = state.moverMode === "eod" ? `Official end-of-day gainers and losers · ${state.moverDate || "latest trading session"}` : "Official NSE gainers and losers · delayed during market hours";
     if (count) count.textContent = String(items.length);
     if (!items.length) {
-      list.innerHTML = `<div class="panel empty-state">${state.overview ? "The NSE feed returned no market movers for this session." : "Live market movers are unavailable right now. No sample entries are substituted."}</div>`;
+      list.innerHTML = `<div class="panel empty-state">${state.overview ? "No verified NSE market movers were returned for the latest trading session. No sample prices are substituted." : "NSE market data is temporarily unavailable. Please refresh in a moment."}</div>`;
       return;
     }
-    list.innerHTML = items.map((item) => `<button type="button" class="feed-card live-mover" data-symbol="${esc(item.symbol)}" aria-label="Open ${esc(item.name)} research"><span class="priority-bar ${item.direction === "up" ? "low" : "high"}"></span><span class="company-logo">${esc(item.symbol.slice(0, 5))}</span><span class="card-main"><span class="card-meta"><span class="ticker">${esc(item.symbol)}</span><span class="tag ${item.direction === "up" ? "results" : "market"}">${item.direction === "up" ? "Gainer" : "Loser"}</span></span><span class="feed-title">${esc(item.name)}</span><span class="feed-copy">Official NSE market-mover data · tap to open company research.</span></span><span class="card-right"><span class="move ${item.direction}">${formatPercent(item.quote.change)}</span><small>${item.quote.price == null ? "Price unavailable" : `₹${formatNumber(item.quote.price)}`}</small></span></button>`).join("");
+    list.innerHTML = items.map((item) => `<button type="button" class="feed-card live-mover" data-symbol="${esc(item.symbol)}" aria-label="Open ${esc(item.name)} research"><span class="priority-bar ${item.direction === "up" ? "low" : "high"}"></span><span class="company-logo">${esc(item.symbol.slice(0, 5))}</span><span class="card-main"><span class="card-meta"><span class="ticker">${esc(item.symbol)}</span><span class="tag ${item.direction === "up" ? "results" : "market"}">${item.direction === "up" ? "Gainer" : "Loser"}</span></span><span class="feed-title">${esc(item.name)}</span><span class="feed-copy">${item.mode === "eod" ? `Official NSE end-of-day data for ${esc(state.moverDate || "the latest trading session")}.` : "Official NSE market-mover data."} Tap to open company research.</span></span><span class="card-right"><span class="move ${item.direction}">${formatPercent(item.quote.change)}</span><small>${item.quote.price == null ? "Price unavailable" : `₹${formatNumber(item.quote.price)}`}</small></span></button>`).join("");
   }
   async function loadOverview() {
     const refresh = $("#refresh-btn");
