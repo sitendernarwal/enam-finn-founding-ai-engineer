@@ -112,9 +112,11 @@ function buildArguments(tool, { symbol, query, index, direction, date, limit }) 
       args[key] = descriptor.enum.find((value) => normalize(value) === normalize(direction));
     }
     else if (direction && /(direction|mover|gainerloser|sortby)/.test(normalized)) {
-      args[key] = direction;
+      const compactDescription = String(descriptor?.description || "").toLowerCase();
+      const directionValue = direction === "gainers" ? "gain" : "loss";
+      args[key] = compactDescription.includes(`'${directionValue}'`) ? directionValue : direction;
     }
-    else if (limit != null && /^(limit|count|pagesize|maxrecords|topn|numberofstocks|numresults|numstocks)$/.test(normalized)) args[key] = limit;
+    else if (limit != null && /^(n|limit|count|pagesize|maxrecords|topn|numberofstocks|numresults|numstocks)$/.test(normalized)) args[key] = limit;
     else if (/(start|from).*(date|time)|^(fromdate|startdate)$/.test(normalized)) args[key] = dateValue("from");
     else if (/(end|to).*(date|time)|^(todate|enddate)$/.test(normalized)) args[key] = dateValue("to");
     else if (/^(period|range|duration|lookback)$/.test(normalized)) args[key] = descriptor?.enum?.find((value) => ["3M", "90D", "3MONTHS", "1Y"].includes(String(value).toUpperCase().replace(/[^A-Z0-9]/g, ""))) || descriptor?.enum?.[0] || "3M";
@@ -267,7 +269,7 @@ async function getOverview() {
             callTool(NSE_EOD_MCP, topMoversTool, { date: sessionDate, direction: "gainers", limit: 5, sessionId, signal, id: 5 }).catch(() => null),
             callTool(NSE_EOD_MCP, topMoversTool, { date: sessionDate, direction: "losers", limit: 5, sessionId, signal, id: 6 }).catch(() => null)
           ]);
-          eodMovers = { date: sessionDate, gainers, losers, source: "https://www.nseindia.in/nse-mcp", toolSchema: topMoversTool.inputSchema };
+          eodMovers = { date: sessionDate, gainers, losers, source: "https://www.nseindia.in/nse-mcp" };
         }
         return { history, bankHistory, eodMovers };
       });
