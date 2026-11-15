@@ -25,140 +25,121 @@
 
   const nav = document.querySelector(".sidebar .nav");
   if (nav) nav.style.setProperty("--nav-count", String(nav.querySelectorAll(".nav-item").length));
-  document.querySelector(".sidebar")?.setAttribute("data-glass", "dock");
-  document.querySelector(".topbar")?.setAttribute("data-glass", "capsule");
-  document.querySelector(".market-strip")?.setAttribute("data-glass", "wide");
+
+  const surfaces = [
+    { selector: ".sidebar", name: "dock", displacement: 20 },
+    { selector: ".topbar", name: "capsule", displacement: 16 },
+    { selector: ".market-strip", name: "wide", displacement: 14 }
+  ];
+  for (const glass of surfaces) {
+    glass.element = document.querySelector(glass.selector);
+    if (glass.element) glass.element.dataset.glass = glass.name;
+  }
   themeButton?.setAttribute("data-glass", "capsule");
 
-  function makeGlassMap(width, height, mode = "pill", heightOnly = false, normalStrength = .72) {
+  // Build a narrow lens around the actual rounded edge, following the approaches at
+  // https://kube.io/blog/liquid-glass-css-svg/ and https://github.com/hasib41/liquid-glass-nav.
+  function createRimMap(width, height, radius) {
     const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const context = canvas.getContext("2d", { willReadFrequently: true });
+    const ratio = Math.min(1, 720 / Math.max(width, height));
+    canvas.width = Math.max(1, Math.round(width * ratio));
+    canvas.height = Math.max(1, Math.round(height * ratio));
+    const context = canvas.getContext("2d");
     if (!context) return "";
-    const image = context.createImageData(width, height);
+
+    const map = context.createImageData(canvas.width, canvas.height);
+    const band = Math.min(17, height / 4, width / 4);
     const halfWidth = width / 2;
     const halfHeight = height / 2;
-    const innerWidth = Math.max(1, halfWidth);
-    const innerHeight = Math.max(1, halfHeight);
-    for (let y = 0; y < height; y += 1) {
-      for (let x = 0; x < width; x += 1) {
-        const nx = (x - halfWidth) / innerWidth;
-        const ny = (y - halfHeight) / innerHeight;
-        const exponent = mode === "squircle" ? 4 : 8;
-        const radial = (Math.abs(nx) ** exponent + Math.abs(ny) ** exponent) ** (1 / exponent);
-        const r2 = radial * radial;
-        const edge = Math.max(0, Math.min(1, (radial - .64) / .34));
-        const curve = edge * edge * (3 - 2 * edge);
-        const offset = (y * width + x) * 4;
-        if (heightOnly) {
-          const convexHeight = Math.max(0, 1 - Math.min(1, r2) ** (mode === "squircle" ? 1.38 : 1.08));
-          image.data[offset] = 255;
-          image.data[offset + 1] = 255;
-          image.data[offset + 2] = 255;
-          image.data[offset + 3] = Math.round(convexHeight * 255);
-        } else {
-          const slopeX = nx / innerWidth;
-          const slopeY = ny / innerHeight;
-          const nxLength = Math.hypot(slopeX, slopeY) || 1;
-          const strength = curve * normalStrength;
-          image.data[offset] = Math.max(0, Math.min(255, Math.round(128 - slopeX / nxLength * strength * 112)));
-          image.data[offset + 1] = Math.max(0, Math.min(255, Math.round(128 - slopeY / nxLength * strength * 112)));
-          image.data[offset + 2] = 128;
-          image.data[offset + 3] = 255;
+
+    for (let row = 0; row < canvas.height; row++) {
+      const y = (row + .5) * height / canvas.height - halfHeight;
+      const dy = Math.abs(y) - (halfHeight - radius);
+      for (let col = 0; col < canvas.width; col++) {
+        const x = (col + .5) * width / canvas.width - halfWidth;
+        const dx = Math.abs(x) - (halfWidth - radius);
+        const cornerX = Math.max(dx, 0);
+        const cornerY = Math.max(dy, 0);
+        const outside = Math.sqrt(cornerX * cornerX + cornerY * cornerY);
+        const depth = radius - outside - Math.min(Math.max(dx, dy), 0);
+        const offset = (row * canvas.width + col) * 4;
+        let red = 128;
+        let green = 128;
+
+        if (depth >= 0 && depth < band) {
+          const normalX = outside ? cornerX / outside : Number(dx > dy);
+          const normalY = outside ? cornerY / outside : Number(dy >= dx);
+          const t = 1 - depth / band;
+          const bend = 121 * t * t * (3 - 2 * t);
+          red -= Math.sign(x) * normalX * bend;
+          green -= Math.sign(y) * normalY * bend;
         }
+
+        map.data[offset] = red;
+        map.data[offset + 1] = green;
+        map.data[offset + 2] = 128;
+        map.data[offset + 3] = 255;
       }
     }
-    context.putImageData(image, 0, 0);
-    return canvas.toDataURL("image/png");
+
+    context.putImageData(map, 0, 0);
+    return canvas.toDataURL();
   }
 
-  function addSvgFilter(defs, id, map, height, scale) {
-    const svgNS = "http://www.w3.org/2000/svg";
-    const filter = document.createElementNS(svgNS, "filter");
-    filter.id = id;
-    filter.setAttribute("x", "-5%");
-    filter.setAttribute("y", "-12%");
-    filter.setAttribute("width", "110%");
-    filter.setAttribute("height", "124%");
-    filter.setAttribute("color-interpolation-filters", "sRGB");
-    filter.setAttribute("primitiveUnits", "userSpaceOnUse");
+  function attachLenses() {
+    // Some browsers parse url() here but do not paint the SVG backdrop filter.
+    const chromium = navigator.userAgentData?.brands?.some(({ brand }) => brand === "Chromium")
+      || /\b(?:Chrome|Chromium)\//.test(navigator.userAgent);
+    if (!chromium || !window.CSS?.supports("backdrop-filter", "url(#finn-lens-dock)")
+      || typeof ResizeObserver !== "function") return;
 
-    const image = (href, result) => {
-      const node = document.createElementNS(svgNS, "feImage");
-      node.setAttribute("x", "0");
-      node.setAttribute("y", "0");
-      node.setAttribute("width", "100%");
-      node.setAttribute("height", "100%");
-      node.setAttribute("preserveAspectRatio", "none");
-      node.setAttribute("href", href);
-      node.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", href);
-      node.setAttribute("result", result);
-      return node;
-    };
-    const displacement = document.createElementNS(svgNS, "feDisplacementMap");
-    displacement.setAttribute("in", "SourceGraphic");
-    displacement.setAttribute("in2", "glass-normal-map");
-    displacement.setAttribute("scale", String(scale));
-    displacement.setAttribute("xChannelSelector", "R");
-    displacement.setAttribute("yChannelSelector", "G");
-    displacement.setAttribute("result", "refracted-backdrop");
-
-    const blur = document.createElementNS(svgNS, "feGaussianBlur");
-    blur.setAttribute("in", "glass-height-map");
-    blur.setAttribute("stdDeviation", "1.2");
-    blur.setAttribute("result", "glass-surface-normals");
-    const lighting = document.createElementNS(svgNS, "feSpecularLighting");
-    lighting.setAttribute("in", "glass-surface-normals");
-    lighting.setAttribute("surfaceScale", "5.4");
-    lighting.setAttribute("specularConstant", "0.78");
-    lighting.setAttribute("specularExponent", "20");
-    lighting.setAttribute("lighting-color", "#ffffff");
-    lighting.setAttribute("result", "glass-specular");
-    const light = document.createElementNS(svgNS, "feDistantLight");
-    light.setAttribute("azimuth", "315");
-    light.setAttribute("elevation", "52");
-    lighting.append(light);
-    const clip = document.createElementNS(svgNS, "feComposite");
-    clip.setAttribute("in", "glass-specular");
-    clip.setAttribute("in2", "SourceAlpha");
-    clip.setAttribute("operator", "in");
-    clip.setAttribute("result", "glass-highlight");
-    const blend = document.createElementNS(svgNS, "feBlend");
-    blend.setAttribute("in", "glass-highlight");
-    blend.setAttribute("in2", "refracted-backdrop");
-    blend.setAttribute("mode", "screen");
-    blend.setAttribute("result", "liquid-glass");
-
-    filter.append(image(map, "glass-normal-map"), image(height, "glass-height-map"), displacement, blur, lighting, clip, blend);
-    defs.append(filter);
-  }
-
-  if (!document.getElementById("finn-glass-filters")) {
     const svgNS = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNS, "svg");
-    svg.id = "finn-glass-filters";
     svg.setAttribute("aria-hidden", "true");
-    svg.setAttribute("focusable", "false");
     svg.setAttribute("width", "0");
     svg.setAttribute("height", "0");
-    svg.style.cssText = "position:fixed;width:0;height:0;overflow:hidden;pointer-events:none";
+    svg.style.cssText = "position:fixed;pointer-events:none";
     const defs = document.createElementNS(svgNS, "defs");
-    const variants = [
-      { id: "finn-glass-wide", width: 640, height: 190, mode: "pill", scale: 58, strength: .88 },
-      { id: "finn-glass-capsule", width: 480, height: 220, mode: "squircle", scale: 54, strength: .90 },
-      { id: "finn-glass-dock", width: 720, height: 176, mode: "pill", scale: 72, strength: 1.0 }
-    ];
-    for (const variant of variants) {
-      addSvgFilter(defs, variant.id, makeGlassMap(variant.width, variant.height, variant.mode, false, variant.strength), makeGlassMap(variant.width, variant.height, variant.mode, true), variant.scale);
-    }
     svg.append(defs);
     document.body.append(svg);
-  }
 
-  const supportsRefraction = window.CSS?.supports?.("backdrop-filter", "url(#finn-glass-capsule) blur(1px)") || window.CSS?.supports?.("-webkit-backdrop-filter", "url(#finn-glass-capsule)");
-  if (supportsRefraction) root.dataset.glassRefraction = "supported";
-  else root.dataset.glassRefraction = "fallback";
+    const observer = new ResizeObserver((entries) => {
+      for (const { target } of entries) {
+        const glass = surfaces.find(({ element }) => element === target);
+        const width = target.offsetWidth;
+        const height = target.offsetHeight;
+        if (!width || !height) continue;
+
+        const cssRadius = getComputedStyle(target).borderTopLeftRadius;
+        const radius = Math.min(parseFloat(cssRadius) || 0, width / 2, height / 2);
+        const map = createRimMap(width, height, radius);
+        if (!map) continue;
+
+        glass.map.setAttribute("width", width);
+        glass.map.setAttribute("height", height);
+        glass.map.setAttribute("href", map);
+        target.style.setProperty("--finn-lens", "url(#" + glass.filter.id + ")");
+      }
+    });
+
+    for (const glass of surfaces) {
+      if (!glass.element) continue;
+      const filter = document.createElementNS(svgNS, "filter");
+      filter.id = "finn-lens-" + glass.name;
+      filter.setAttribute("color-interpolation-filters", "sRGB");
+      // Keep the frost inside the SVG chain so it softens the refracted backdrop.
+      filter.innerHTML = '<feImage x="0" y="0" preserveAspectRatio="none" result="rim"/>'
+        + '<feDisplacementMap in="SourceGraphic" in2="rim" scale="' + (2 * glass.displacement)
+        + '" xChannelSelector="R" yChannelSelector="G"/>'
+        + '<feGaussianBlur stdDeviation="2.4" edgeMode="duplicate"/>'
+        + '<feColorMatrix type="saturate" values="1.25"/>';
+      glass.filter = filter;
+      glass.map = filter.firstElementChild;
+      defs.append(filter);
+      observer.observe(glass.element);
+    }
+  }
+  attachLenses();
 
   if (window.matchMedia?.("(pointer: fine)").matches) {
     document.querySelectorAll(".topbar, .sidebar").forEach((surface) => {
