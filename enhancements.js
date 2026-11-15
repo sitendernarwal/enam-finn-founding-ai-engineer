@@ -21,6 +21,8 @@
     paintTheme();
   });
   paintTheme();
+  const nav = document.querySelector(".sidebar .nav");
+  if (nav) nav.style.setProperty("--nav-count", String(nav.querySelectorAll(".nav-item").length));
 
   function createPillDisplacementMap(width = 600, height = 180) {
     const canvas = document.createElement("canvas");
