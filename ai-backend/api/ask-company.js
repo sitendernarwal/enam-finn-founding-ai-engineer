@@ -70,7 +70,7 @@ function extractAnswer(response, records, pdfRecord) {
   const text = blocks.filter(block => block?.type === "text").map(block => block.text).join("")
     || response?.output_text || "";
   try {
-    const parsed = JSON.parse(text);
+    const parsed = JSON.parse(String(text).trim().replace(/^```(?:json)?\s*|\s*```$/gi, ""));
     const answer = typeof parsed.answer === "string" ? parsed.answer.trim() : "";
     if (!answer || answer.length > 4000 || /https?:\/\//i.test(answer) || !Array.isArray(parsed.citations)) return null;
     const sources = [];
@@ -90,8 +90,10 @@ function extractAnswer(response, records, pdfRecord) {
       sources.push({ title, url: url.href, record: id });
     }
     const references = [...answer.matchAll(/\[(\d+)\]/g)].map(match => Number(match[1]));
-    return sources.length && references.length && references.every(id => sources.some(source => source.record === id))
-      ? { answer, sources } : null;
+    if (!sources.length || references.some(id => !sources.some(source => source.record === id))) return null;
+    const explicit = new Set(sources.map(source => source.record));
+    const citedAnswer = references.length ? answer : `${answer} ${[...explicit].map(id => `[${id}]`).join(" ")}`;
+    return { answer: citedAnswer, sources };
   } catch { return null; }
 }
 
@@ -212,7 +214,7 @@ export default async function handler(req, res) {
         method: "POST", signal: AbortSignal.timeout(24_000),
         headers: { "x-goog-api-key": apiKey, "Content-Type": "application/json" },
         body: JSON.stringify({ model: MODEL, system_instruction: instruction, input,
-          response_format: answerFormat, generation_config: { temperature: 0.2, max_output_tokens: 750 }, store: false })
+          response_format: answerFormat, generation_config: { temperature: 0.2, thinking_level: "minimal", max_output_tokens: 1200 }, store: false })
       });
       return { upstream, response: await upstream.json().catch(() => ({})) };
     });
@@ -226,7 +228,10 @@ export default async function handler(req, res) {
       return fallback();
     }
     const result = extractAnswer(response, records, pdfRecord);
-    if (!result) return fallback();
+    if (!result) {
+      console.warn("FINN Gemini returned no valid evidence citations");
+      return fallback();
+    }
     const pdfCited = pdfRecord && result.sources.some(source => source.record === pdfRecord);
     return reply(200, { ...supplement, ...result, evidence: pdfCited ? "filing_pdf" : "metadata",
       sources: [...result.sources, officialIndex].slice(0, 6)

@@ -21,7 +21,7 @@ function rank(items, topic, matcher) {
 export function planResearch(items, question) {
   const topics = [
     { question: results, record: resultsFiling },
-    { question: outlook, record: /outlook|guidance|forecast|investor presentation|earnings call|conference call|transcript/i },
+    { question: outlook, record: /outlook|guidance|forecast|investor presentation|transcript/i },
     { question: risks, record: risks },
     { question: otherFiling, record: otherFiling }
   ].filter(topic => topic.question.test(question));
