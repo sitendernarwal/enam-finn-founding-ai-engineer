@@ -1,32 +1,28 @@
-# FINN architecture and privacy notes
+# FINN architecture and data boundaries
 
-## Prototype
+## Current prototype
 
-The prototype is static HTML, CSS, and JavaScript. UI state and seed data live in `app.js`; it has no server, credentials, database, analytics, or third-party model calls. This keeps the demo cheap and makes every interaction inspectable. The displayed financial values, alerts, and network profiles are sample content, not a live data product.
-
-## Production shape
+FINN is a static HTML, CSS, and JavaScript frontend hosted with GitHub Pages. Both assignment builds use the shared serverless API at `finn-ai-api` on Vercel.
 
 ```text
-NSE/BSE filings ─┐
-Market data ─────┼─> scheduled ingestion ─> normalized company/event store ─> Push ranking
-Company reports ┘                                         │
-                                                          ├─> Pull research with cited evidence
-Investor-approved contacts ─> encrypted private graph ────┴─> permission-checked Network matches
+Mobile / desktop browser
+  ├─ Market and company research ──> Vercel /api/market-data ──> NSE MCP
+  └─ Ask FINN ─────────────────────> Vercel /api/ask-company ──> NSE disclosures + Gemini
 ```
 
-- **Market prices and volume:** fetch end-of-day data from a licensed or permitted provider; normalize symbols and trading dates. Cache snapshots and show freshness and source.
-- **Announcements / filings:** ingest exchange disclosures, retain the original document URL and filing timestamp, and classify events. Keep the original text available beside any summary.
-- **Fundamentals:** use company annual reports and earnings-call transcripts, with document metadata, page/section references, and reporting periods. Prefer primary documents; do not use broker notes or news for Pull analysis.
-- **Investor network:** store only people the investor has consented to add. Use explicit relationship and expertise fields; avoid scraping professional profiles.
+- **Market data:** The API retrieves official NSE index, quote, end-of-day history, and market-mover data. It returns a dated end-of-day snapshot when live movers are unavailable. The UI does not substitute sample prices.
+- **Company research:** Displays returned NSE quotes, historical closes, announcement metadata, and links to NSE filings. Revenue, profit, EBITDA, margins, and valuation metrics stay unavailable when the market feed does not supply them.
+- **Calculations and charts:** Price changes use exchange-reported values or are calculated from actual current/previous closes. Chart ranges and points come from the returned price series; the app does not create synthetic observations.
+- **AI:** Ask FINN uses Gemini through the server-side API. The server retrieves recent NSE announcement metadata, selects relevant records, and includes official source links. The model does not read the linked PDF contents, so responses must not be treated as verified financial-statement analysis. The API key stays in Vercel environment settings.
+- **Workspace state:** Theme, portfolio symbols, and watchlist symbols are stored in browser local storage. A portfolio entry is a tracked company, not a position or return calculation.
+- **Network:** This view remains empty until a real, authorized contact source is connected. The app does not provide synthetic profiles or import contacts.
 
-## AI boundaries
+## Service behavior and limits
 
-Use deterministic code for price/volume thresholds, financial calculations, and alert ranking. A language model may summarize retrieved filing passages and draft a research narrative, but every factual claim should link to evidence and identify its period. Do not let a model invent financial figures or make contact decisions. Keep the retrieval set and prompt short; use a lower-cost model for extraction and reserve a stronger model for synthesis when needed. The current prototype makes no model calls, so it has no inference cost. In production, cache results, batch extraction, and use the smallest model that meets the evidence and quality bar; this should keep a focused demo within free or low-cost tiers.
+The market endpoint caches successful responses briefly and applies upstream timeouts. The frontend prevents overlapping refreshes and keeps the last successful snapshot visible if a later refresh fails. NSE may delay intraday values by 1–3 minutes; historical prices are end-of-day.
 
-## Privacy and security
+Gemini uses the free-tier service where available. Quotas and availability depend on Google's current limits. Questions should contain no personal or confidential information. All claims should be checked against the linked NSE filing.
 
-Network data is the most sensitive part of FINN. In production, encrypt data in transit and at rest, isolate each investor's graph with tenant-level authorization, log access, and offer export and permanent deletion. Ask the investor before sharing a contact or drafting an introduction. Never send personal network data to a model by default; if an investor opts in, disclose the use and minimize the fields sent. Apply a retention schedule and provide a clear consent revocation path.
+## Production considerations
 
-## Hosting and next steps
-
-The static demo can be deployed on a static host. A production version can use a managed web host, a scheduled ingestion worker, object storage for source documents, a relational store for normalized facts, and a private graph or relational tables for contacts. Keep secrets server-side. First replace seed data with a small, refreshable set of primary-source filings; then add evidence-grounded summaries, a secure account boundary, and consented network import.
+A production service would need confirmed data-provider terms, durable storage, accounts and access controls, monitoring, and explicit consent before connecting personal network data. Keep provider credentials server-side, minimize retained data, and make the freshness and evidence period visible for every financial claim.
