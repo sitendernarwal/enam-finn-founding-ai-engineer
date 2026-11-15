@@ -8,7 +8,7 @@
   const storage = { portfolio: `finn-live-portfolio-${appId}`, watchlist: `finn-live-watchlist-${appId}` };
   const state = {
     view: "home", overview: null, movers: [], moverFilter: "all", moverMode: "live", moverDate: "", search: [], selected: null,
-    companies: new Map(), portfolio: read(storage.portfolio), watchlist: read(storage.watchlist), searchTimer: 0
+    companies: new Map(), portfolio: read(storage.portfolio), watchlist: read(storage.watchlist), searchTimer: 0, searchSequence: 0
   };
   let overviewLoading = false;
   let lastOverviewSuccessAt = 0;
@@ -322,11 +322,20 @@
   async function searchCompanies(query) {
     const region = $("#company-chips");
     const trimmed = query.trim();
+    const sequence = ++state.searchSequence;
+    const isCurrentSearch = () => sequence === state.searchSequence && ($("#company-search")?.value.trim() ?? trimmed) === trimmed;
     if (trimmed.length < 2) { state.search = []; renderChips(); return; }
     if (region) region.innerHTML = '<span class="search-status">Searching official NSE listings…</span>';
     try {
-      const payload = await request({ view: "search", q: trimmed });
-      state.search = (Array.isArray(payload.items) ? payload.items : []).filter((item) => item.symbol).map((item) => ({ symbol: String(item.symbol).toUpperCase(), name: item.name || item.symbol, sector: item.sector || "NSE listed equity" }));
+      const parseItems = (payload) => (Array.isArray(payload.items) ? payload.items : []).filter((item) => item.symbol).map((item) => ({ symbol: String(item.symbol).toUpperCase(), name: item.name || item.symbol, sector: item.sector || "NSE listed equity" }));
+      let items = parseItems(await request({ view: "search", q: trimmed }));
+      if (!isCurrentSearch()) return;
+      if (!items.length && /\s/.test(trimmed)) {
+        const compact = trimmed.toUpperCase().replace(/[^A-Z0-9&.-]/g, "");
+        if (/^[A-Z0-9&.-]{2,24}$/.test(compact)) items = parseItems(await request({ view: "search", q: compact }));
+      }
+      if (!isCurrentSearch()) return;
+      state.search = items;
       state.search.forEach((item) => state.companies.set(item.symbol, { ...state.companies.get(item.symbol), ...item, short: item.symbol.slice(0, 5) }));
       if (!state.search.length && /^[A-Z0-9&.-]{1,24}$/i.test(trimmed)) {
         const symbol = trimmed.toUpperCase().replace(/\.NS$/, "");
@@ -335,6 +344,7 @@
       renderChips();
       if (!state.search.length && region) region.innerHTML = '<span class="search-status">No NSE-listed match was returned.</span>';
     } catch (error) {
+      if (!isCurrentSearch()) return;
       state.search = [];
       if (region) region.innerHTML = `<span class="search-status">${esc(error.message)}. Check your connection and try again.</span>`;
     }
