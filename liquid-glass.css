@@ -432,3 +432,91 @@ html[data-theme="light"] .network-hero-glass {
 html[data-theme="light"] .network-hero-glass h2 { color: #f7fbff; }
 html[data-theme="light"] .network-hero-glass .eyebrow { color: #b8f1d0; }
 html[data-theme="light"] .network-hero-glass p { color: #e5edf4; }
+
+/* Floating lens surfaces: a brighter curved rim makes the refraction visible without
+   putting a blur layer over analytical cards or reducing text contrast. */
+.sidebar[data-glass], .topbar[data-glass], .market-strip[data-glass], .theme-toggle[data-glass] {
+  box-shadow: 0 20px 54px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.42), inset 0 -1px 0 rgba(255,255,255,.12);
+}
+.sidebar[data-glass]::after, .topbar[data-glass]::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(245,252,255,.18);
+  background: linear-gradient(165deg,rgba(255,255,255,.11),transparent 25% 72%,rgba(186,225,244,.07));
+  pointer-events: none;
+}
+.sidebar[data-glass] .nav-item { transition: color .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+.sidebar[data-glass] .nav-item.active {
+  border-color: rgba(226,255,245,.54);
+  background: linear-gradient(145deg,rgba(200,250,229,.36),rgba(121,211,183,.22) 55%,rgba(185,226,250,.18));
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,.62), inset 0 -1px 0 rgba(216,255,244,.18), 0 6px 22px rgba(79,220,171,.17);
+  text-shadow: 0 1px 9px rgba(255,255,255,.14);
+}
+@media (hover: hover) and (pointer: fine) {
+  .sidebar[data-glass] .nav-item:not(.active):hover { color: var(--ink); background: rgba(236,247,255,.12); }
+}
+
+@media (max-width: 760px) {
+  .sidebar[data-glass="dock"] {
+    inset: auto 10px calc(10px + env(safe-area-inset-bottom)) 10px;
+    height: 78px;
+    padding: 5px 7px;
+    border-radius: 29px;
+    border-color: rgba(237,248,255,.47);
+    background: linear-gradient(145deg,rgba(227,241,250,.22),rgba(131,157,179,.20) 47%,rgba(222,240,249,.23));
+    -webkit-backdrop-filter: blur(27px) saturate(185%) contrast(1.08);
+    backdrop-filter: blur(27px) saturate(185%) contrast(1.08);
+    box-shadow: 0 22px 52px rgba(0,0,0,.42), 0 5px 14px rgba(0,0,0,.2), inset 0 1.5px 0 rgba(255,255,255,.66), inset 0 -1px 0 rgba(255,255,255,.17);
+  }
+  html[data-theme="light"] .sidebar[data-glass="dock"] {
+    border-color: rgba(255,255,255,.94);
+    background: linear-gradient(145deg,rgba(255,255,255,.82),rgba(226,239,247,.75) 48%,rgba(255,255,255,.87));
+    box-shadow: 0 20px 48px rgba(33,54,66,.22), inset 0 1.5px 0 rgba(255,255,255,.98), inset 0 -1px 0 rgba(93,123,143,.13);
+  }
+  .sidebar[data-glass="dock"]::before {
+    opacity: 1;
+    background: radial-gradient(ellipse 46% 120% at var(--glass-pointer-x) 0%,rgba(255,255,255,.42),transparent 76%),linear-gradient(165deg,rgba(255,255,255,.25),transparent 43%,rgba(174,219,241,.14));
+  }
+  .sidebar[data-glass="dock"]::after { border-color: rgba(255,255,255,.27); }
+  html[data-theme="light"] .sidebar[data-glass="dock"]::after { border-color: rgba(255,255,255,.55); }
+  .sidebar[data-glass="dock"] .nav { height: 100%; align-items: center; gap: 4px; }
+  .sidebar[data-glass="dock"] .nav-item {
+    height: 64px;
+    min-width: 0;
+    padding: 2px 3px;
+    gap: 4px;
+    border: 1px solid transparent;
+    border-radius: 21px;
+    color: #e0e9f2;
+  }
+  html[data-theme="light"] .sidebar[data-glass="dock"] .nav-item { color: #40515d; }
+  .sidebar[data-glass="dock"] .nav-item.active {
+    color: #eafff5;
+    border-color: rgba(234,255,247,.73);
+    background: linear-gradient(150deg,rgba(165,238,205,.53),rgba(80,183,151,.37) 58%,rgba(160,218,232,.34));
+    box-shadow: inset 0 1.5px 0 rgba(255,255,255,.74), 0 5px 17px rgba(65,211,158,.2), 0 0 22px rgba(177,247,221,.1);
+  }
+  html[data-theme="light"] .sidebar[data-glass="dock"] .nav-item.active {
+    color: #145b41;
+    border-color: rgba(255,255,255,.98);
+    background: linear-gradient(150deg,rgba(255,255,255,.83),rgba(191,238,216,.76) 58%,rgba(210,237,245,.79));
+    box-shadow: inset 0 1.5px 0 rgba(255,255,255,.98), 0 5px 15px rgba(36,91,69,.13);
+  }
+  .sidebar[data-glass="dock"] .nav-icon { font-size: 20px; line-height: 1; }
+  .sidebar[data-glass="dock"] .nav-label { font-size: 9px; line-height: 1.15; }
+  .topbar[data-glass="capsule"] {
+    border-color: rgba(242,250,255,.48);
+    box-shadow: 0 12px 32px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.62), inset 0 -1px 0 rgba(255,255,255,.14);
+  }
+  html[data-glass-refraction="supported"] .sidebar[data-glass="dock"] {
+    -webkit-backdrop-filter: blur(27px) saturate(185%) contrast(1.08);
+    backdrop-filter: url(#finn-glass-dock) blur(27px) saturate(185%) contrast(1.08);
+  }
+  html[data-glass-refraction="supported"] .topbar[data-glass="capsule"] {
+    -webkit-backdrop-filter: blur(26px) saturate(180%);
+    backdrop-filter: url(#finn-glass-capsule) blur(26px) saturate(180%) contrast(1.06);
+  }
+}
