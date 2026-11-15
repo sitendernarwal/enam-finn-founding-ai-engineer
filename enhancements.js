@@ -30,7 +30,7 @@
   document.querySelector(".market-strip")?.setAttribute("data-glass", "wide");
   themeButton?.setAttribute("data-glass", "capsule");
 
-  function makeGlassMap(width, height, mode = "pill", heightOnly = false) {
+  function makeGlassMap(width, height, mode = "pill", heightOnly = false, normalStrength = .72) {
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
@@ -47,9 +47,10 @@
       for (let x = 0; x < width; x += 1) {
         const nx = (x - halfWidth) / innerWidth;
         const ny = (y - halfHeight) / innerHeight;
-        const r2 = nx * nx + ny * ny;
-        const radial = Math.sqrt(r2);
-        const edge = Math.max(0, Math.min(1, (radial - .67) / .42));
+        const exponent = mode === "squircle" ? 4 : 2;
+        const radial = (Math.abs(nx) ** exponent + Math.abs(ny) ** exponent) ** (1 / exponent);
+        const r2 = radial * radial;
+        const edge = Math.max(0, Math.min(1, (radial - .61) / .43));
         const curve = edge * edge * (3 - 2 * edge);
         const offset = (y * width + x) * 4;
         if (heightOnly) {
@@ -60,7 +61,7 @@
           image.data[offset + 3] = Math.round(convexHeight * 255);
         } else {
           const nxLength = Math.hypot(nx, ny) || 1;
-          const strength = curve * .43;
+          const strength = curve * normalStrength;
           image.data[offset] = Math.max(0, Math.min(255, Math.round(128 - nx / nxLength * strength * 112)));
           image.data[offset + 1] = Math.max(0, Math.min(255, Math.round(128 - ny / nxLength * strength * 112)));
           image.data[offset + 2] = 128;
@@ -109,9 +110,9 @@
     blur.setAttribute("result", "glass-surface-normals");
     const lighting = document.createElementNS(svgNS, "feSpecularLighting");
     lighting.setAttribute("in", "glass-surface-normals");
-    lighting.setAttribute("surfaceScale", "3.8");
-    lighting.setAttribute("specularConstant", "0.62");
-    lighting.setAttribute("specularExponent", "24");
+    lighting.setAttribute("surfaceScale", "5.4");
+    lighting.setAttribute("specularConstant", "0.78");
+    lighting.setAttribute("specularExponent", "20");
     lighting.setAttribute("lighting-color", "#ffffff");
     lighting.setAttribute("result", "glass-specular");
     const light = document.createElementNS(svgNS, "feDistantLight");
@@ -144,11 +145,12 @@
     svg.style.cssText = "position:fixed;width:0;height:0;overflow:hidden;pointer-events:none";
     const defs = document.createElementNS(svgNS, "defs");
     const variants = [
-      { id: "finn-glass-wide", width: 520, height: 180, mode: "pill", scale: 28 },
-      { id: "finn-glass-capsule", width: 440, height: 190, mode: "squircle", scale: 23 }
+      { id: "finn-glass-wide", width: 640, height: 190, mode: "pill", scale: 42, strength: .68 },
+      { id: "finn-glass-capsule", width: 480, height: 220, mode: "squircle", scale: 38, strength: .68 },
+      { id: "finn-glass-dock", width: 720, height: 176, mode: "pill", scale: 48, strength: .76 }
     ];
     for (const variant of variants) {
-      addSvgFilter(defs, variant.id, makeGlassMap(variant.width, variant.height, variant.mode), makeGlassMap(variant.width, variant.height, variant.mode, true), variant.scale);
+      addSvgFilter(defs, variant.id, makeGlassMap(variant.width, variant.height, variant.mode, false, variant.strength), makeGlassMap(variant.width, variant.height, variant.mode, true), variant.scale);
     }
     svg.append(defs);
     document.body.append(svg);
