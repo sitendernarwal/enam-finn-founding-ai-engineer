@@ -112,6 +112,12 @@ function isResultsQuestion(question) {
   return /results?|revenue|ebitda|profit|quarter|financial performance|earnings/i.test(question);
 }
 
+function isFinancialResultsDisclosure(item) {
+  const text = `${item.title} ${item.description} ${item.attachment?.url || ""}`;
+  return /\b(financial|quarterly|annual|earnings|unaudited|audited)\b[\s\S]{0,80}\bresults?\b|\bresults?\b[\s\S]{0,80}\b(financial|quarterly|annual|earnings)\b/i.test(text)
+    || /outcomeofbmresults/i.test(text);
+}
+
 function selectDisclosures(records, question) {
   const normalized = records
     .map(normalizeDisclosure)
@@ -119,7 +125,7 @@ function selectDisclosures(records, question) {
     .sort((left, right) => disclosureDateValue(right.date) - disclosureDateValue(left.date) || left.index - right.index);
   if (!isResultsQuestion(question)) return normalized.slice(0, MAX_DISCLOSURES);
 
-  const results = normalized.filter((item) => /result|quarter|financial|earnings/i.test(`${item.title} ${item.description}`));
+  const results = normalized.filter(isFinancialResultsDisclosure);
   return (results.length ? results : normalized).slice(0, MAX_DISCLOSURES);
 }
 
@@ -238,11 +244,14 @@ export default async function handler(req, res) {
   // Keep results answers deterministic so the model cannot infer reporting periods
   // or financial values from a filing date or PDF filename.
   if (disclosures.length && isResultsQuestion(question)) {
-    const latest = disclosures[0];
-    const subject = latest.title ? `“${latest.title}”` : "a results-related announcement";
-    const filed = latest.date ? ` dated ${latest.date}` : "";
+    const latest = disclosures.find(isFinancialResultsDisclosure);
+    const subject = latest?.title ? `“${latest.title}”` : "a financial-results-specific filing";
+    const filed = latest?.date ? ` dated ${latest.date}` : "";
+    const resultNotice = latest
+      ? `The latest results-specific NSE announcement in the available metadata is ${subject}${filed}.`
+      : "The recent NSE metadata does not identify a financial-results-specific filing.";
     return send(res, 200, {
-      answer: `The latest matching NSE announcement in the available metadata is ${subject}${filed}. The metadata does not verify the reporting period, revenue, EBITDA, or profit figures, and FINN has not read the attached filing. Open the official NSE filing below to confirm those details.`,
+      answer: `${resultNotice} The metadata does not verify the reporting period, revenue, EBITDA, or profit figures, and FINN has not read the attached filing. Open the official NSE filing below to confirm those details.`,
       sources
     }, corsHeaders);
   }
