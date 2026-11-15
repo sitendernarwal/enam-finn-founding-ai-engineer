@@ -97,7 +97,7 @@
   function nameOf(row) { return String(field(row, ["companyName", "company", "securityName", "name", "company_name"]) || symbolOf(row)).trim(); }
   function quoteOf(row) {
     const price = numeric(field(row, ["lastPrice", "lastTradedPrice", "ltp", "closePrice", "currentPrice", "last", "close", "price", "value"]));
-    const change = numeric(field(row, ["pChange", "percentChange", "changePercent", "percentageChange", "dayChangePercent"]));
+    const change = numeric(field(row, ["pChange", "pctChange", "percentChange", "changePercent", "percentageChange", "dayChangePercent"]));
     const absoluteChange = numeric(field(row, ["change", "netChange", "changeValue"]));
     return { price, change: change ?? null, absoluteChange, raw: row };
   }
@@ -131,17 +131,25 @@
     return rowsFrom(value).map((row) => ({
       name: String(field(row, ["indexName", "index", "name", "symbol"]) || "").toUpperCase(),
       price: numeric(field(row, ["last", "lastPrice", "lastValue", "currentValue", "close", "value"])),
-      change: numeric(field(row, ["percentChange", "pChange", "changePercent", "percentageChange"])),
+      change: numeric(field(row, ["percentChange", "pChange", "pctChange", "changePercent", "percentageChange"])),
+      date: String(field(row, ["date", "tradeDate", "tradingDate"]) || ""),
       raw: row
     })).filter((item) => item.name);
   }
   function renderIndices(payload) {
     const indices = indexRows(payload?.indices);
+    const historicalRows = numberList(payload?.history);
+    const lastIndexClose = historicalRows.at(-1);
+    const indexClose = lastIndexClose ? {
+      name: "NIFTY 50", price: numeric(field(lastIndexClose, ["close", "last", "value"])),
+      change: numeric(field(lastIndexClose, ["pctChange", "percentChange", "pChange"])),
+      date: String(field(lastIndexClose, ["date", "tradeDate", "tradingDate"]) || ""), eod: true
+    } : null;
     const strip = $("#market-strip");
     for (const label of ["NIFTY 50", "NIFTY BANK"]) {
       const target = $(`[data-index="${label}"]`, strip);
       if (!target) continue;
-      const found = indices.find((item) => item.name.includes(label));
+      const found = indices.find((item) => item.name.includes(label)) || (label === "NIFTY 50" ? indexClose : null);
       const priceNode = $("b", target);
       let changeNode = $(".market-move", target);
       if (!changeNode) {
@@ -159,6 +167,8 @@
       changeNode.textContent = formatPercent(found.change);
       changeNode.classList.toggle("up", found.change == null || found.change >= 0);
       changeNode.classList.toggle("down", found.change != null && found.change < 0);
+      const note = $(".market-note", target);
+      if (note) note.textContent = found.eod && found.date ? `Latest close · ${found.date}` : "NSE market data";
     }
     const counts = $$("#watchlist-market-count, #portfolio-mini-count");
     counts.forEach((node) => { node.textContent = node.id === "watchlist-market-count" ? `${state.watchlist.length} companies` : String(state.portfolio.length); });
@@ -232,10 +242,12 @@
   function companyCard(entry, mode) {
     const company = state.companies.get(entry.symbol) || entry;
     const quote = company.quoteData || { price: null, change: null };
+    const priceLabel = quote.isClose ? `Latest close${company.historyAsOf ? ` · ${company.historyAsOf}` : ""}` : "Live price · NSE";
+    const freshnessLabel = quote.isClose ? `End of day · ${company.historyAsOf || "date not provided"}` : company.updatedAt ? marketStamp(company.updatedAt) : "Price loads when available";
     const isTracked = state.portfolio.some((item) => item.symbol === entry.symbol);
     const isWatched = state.watchlist.some((item) => item.symbol === entry.symbol);
     const remove = mode === "watchlist" ? `<button class="watch-action" data-watch-action="remove" data-symbol="${esc(entry.symbol)}">Remove</button>` : "";
-    return `<article class="portfolio-card panel"><div class="portfolio-card-head"><div class="portfolio-company-id"><span class="company-logo">${esc(company.short || entry.symbol.slice(0, 5))}</span><div><h3>${esc(company.name || entry.name || entry.symbol)}</h3><p>${esc(entry.symbol)} · ${esc(company.sector || "NSE listed equity")}</p></div></div>${remove}</div><div class="portfolio-card-metrics"><div><span>Latest price · NSE</span><b>${quote.price == null ? "Unavailable" : `₹${formatNumber(quote.price)}`}</b></div><div><span>Day change</span><b class="${quote.change != null && quote.change < 0 ? "down" : "up"}">${formatPercent(quote.change)}</b></div></div><div class="portfolio-card-footer"><span class="data-status">${company.updatedAt ? esc(marketStamp(company.updatedAt)) : "Price loads when available"}</span><span class="card-actions"><button class="text-btn" data-card-action="${isTracked ? "untrack" : "track"}" data-symbol="${esc(entry.symbol)}">${isTracked ? "Remove from portfolio" : "Add to portfolio"}</button><button class="text-btn" data-card-action="${isWatched ? "unwatch" : "watch"}" data-symbol="${esc(entry.symbol)}">${isWatched ? "Remove watch" : "☆ Watch"}</button><button class="text-btn" data-open-company="${esc(entry.symbol)}">Research →</button></span></div></article>`;
+    return `<article class="portfolio-card panel"><div class="portfolio-card-head"><div class="portfolio-company-id"><span class="company-logo">${esc(company.short || entry.symbol.slice(0, 5))}</span><div><h3>${esc(company.name || entry.name || entry.symbol)}</h3><p>${esc(entry.symbol)} · ${esc(company.sector || "NSE listed equity")}</p></div></div>${remove}</div><div class="portfolio-card-metrics"><div><span>${esc(priceLabel)}</span><b>${quote.price == null ? "Unavailable" : `₹${formatNumber(quote.price)}`}</b></div><div><span>${quote.isClose ? "Change from previous close" : "Day change"}</span><b class="${quote.change != null && quote.change < 0 ? "down" : "up"}">${formatPercent(quote.change)}</b></div></div><div class="portfolio-card-footer"><span class="data-status">${esc(freshnessLabel)}</span><span class="card-actions"><button class="text-btn" data-card-action="${isTracked ? "untrack" : "track"}" data-symbol="${esc(entry.symbol)}">${isTracked ? "Remove from portfolio" : "Add to portfolio"}</button><button class="text-btn" data-card-action="${isWatched ? "unwatch" : "watch"}" data-symbol="${esc(entry.symbol)}">${isWatched ? "Remove watch" : "☆ Watch"}</button><button class="text-btn" data-open-company="${esc(entry.symbol)}">Research →</button></span></div></article>`;
   }
   function emptyList(title, copy, actionLabel = "Find a company") {
     return `<div class="portfolio-empty panel"><span class="empty-star" aria-hidden="true">☆</span><b>${esc(title)}</b><p>${esc(copy)}</p><button class="primary-btn" type="button" data-go-view="research">${esc(actionLabel)} <span>→</span></button></div>`;
@@ -332,11 +344,20 @@
       }
       try {
         const payload = await request({ view: "company", symbol });
-        const quote = quoteOf(payload.quote);
-        const quoteRow = objectsDeep(payload.quote).find((row) => symbolOf(row) || field(row, ["lastPrice", "ltp", "closePrice"]) != null);
+        const liveQuote = quoteOf(payload.quote);
         const history = normalizedHistory(payload.history);
-        const updated = { ...current, symbol, name: String(field(payload.quote, ["companyName", "company", "securityName", "name"]) || current.name || symbol), quoteData: quote, rawQuote: payload.quote, history, announcements: payload.announcements || { items: [] }, updatedAt: payload.updatedAt || new Date().toISOString(), source: payload.source, freshness: payload.freshness, loadedAt: Date.now(), loading: null };
-        if (quoteRow && !updated.name) updated.name = nameOf(quoteRow);
+        const historyRows = numberList(payload.history);
+        const lastHistoryRow = historyRows.at(-1);
+        const closeQuote = lastHistoryRow ? quoteOf(lastHistoryRow) : { price: null, change: null, absoluteChange: null };
+        if (closeQuote.price != null && closeQuote.change == null) {
+          const previousClose = numeric(field(lastHistoryRow, ["prevClose", "previousClose", "prevDayClose"]));
+          if (previousClose != null && previousClose !== 0) {
+            closeQuote.change = ((closeQuote.price - previousClose) / previousClose) * 100;
+            closeQuote.absoluteChange = closeQuote.price - previousClose;
+          }
+        }
+        const quote = liveQuote.price != null ? { ...liveQuote, isClose: false } : { ...closeQuote, isClose: closeQuote.price != null };
+        const updated = { ...current, symbol, name: String(field(payload.quote, ["companyName", "company", "securityName", "name"]) || current.name || symbol), quoteData: quote, rawQuote: payload.quote, history, announcements: payload.announcements || { items: [] }, updatedAt: payload.updatedAt || new Date().toISOString(), source: payload.source, freshness: payload.freshness, historyAsOf: String(field(lastHistoryRow, ["date", "tradeDate", "tradingDate"]) || ""), loadedAt: Date.now(), loading: null };
         state.companies.set(symbol, updated);
         if (state.selected?.symbol === symbol || open) { state.selected = updated; renderResearch(); }
         if (state.view === "portfolio") renderPortfolio();
@@ -363,8 +384,9 @@
     const quote = company.quoteData || { price: null, change: null };
     const tracked = state.portfolio.some((item) => item.symbol === company.symbol);
     const watched = state.watchlist.some((item) => item.symbol === company.symbol);
-    const movementClass = quote.change != null && quote.change < 0 ? "down" : "up";
-    $("#research-card").innerHTML = `<div class="research-layout"><div class="panel research-main"><div class="company-title"><span class="company-logo">${esc(company.short || company.symbol.slice(0, 5))}</span><div><h2>${esc(company.name || company.symbol)}</h2><p>${esc(company.symbol)} · ${esc(company.sector || "NSE listed equity")} · NSE</p></div><button class="quiet-btn company-actions" type="button" data-company-action="${tracked ? "untrack" : "track"}" data-symbol="${esc(company.symbol)}">${tracked ? "✓ In portfolio" : "＋ Portfolio"}</button><button class="quiet-btn" type="button" data-company-action="${watched ? "unwatch" : "watch"}" data-symbol="${esc(company.symbol)}">${watched ? "★ Saved" : "☆ Watch"}</button></div><div class="metric-grid"><div class="metric"><span>Latest share price</span><b>${quote.price == null ? "Unavailable" : `₹${formatNumber(quote.price)}`}</b><small class="${movementClass}">${formatPercent(quote.change)} today</small></div><div class="metric"><span>Absolute day change</span><b>${quote.absoluteChange == null ? "Unavailable" : `₹${formatNumber(quote.absoluteChange)}`}</b><small>As reported by NSE</small></div><div class="metric"><span>Revenue</span><b>Not in feed</b><small>Verify in company filings</small></div><div class="metric"><span>Profit</span><b>Not in feed</b><small>Verify in company filings</small></div></div><section class="research-section"><div class="chart-heading"><div><span class="eyebrow">PRICE HISTORY · END OF DAY</span><h3>${esc(company.name || company.symbol)}</h3></div><span class="source-label">${company.history?.length || 0} observations</span></div>${svgChart(company.history || [], company.name || company.symbol)}</section><section class="research-section"><h3>Recent corporate announcements</h3><p class="source-status">NSE announcement metadata. Open the filing to verify its full contents.</p><div id="announcement-list"></div></section><section class="research-section"><h3>Fundamentals</h3><p>Quarterly revenue, EBITDA, profit, margins and market capitalization are not supplied by this live market feed, so FINN leaves them blank. Open a primary disclosure to inspect reported financial statements.</p></section></div><aside class="panel research-side"><h3>Data quality & sources</h3><div class="source-item"><b>Quote</b><small>${esc(company.freshness || "NSE delayed intraday feed")}</small><a href="https://www.nseindia.in/nse-mcp" target="_blank" rel="noopener noreferrer">NSE market data terms ↗</a></div><div class="source-item"><b>Price history</b><small>End-of-day values from the exchange history feed.</small></div><div class="source-item"><b>AI research</b><small>Ask FINN summarizes recent NSE announcement metadata; it does not claim to read filing attachments.</small></div></aside></div>`;
+    const priceKind = quote.isClose ? `Latest close${company.historyAsOf ? ` · ${esc(company.historyAsOf)}` : ""}` : "Live quote · NSE delay applies";
+    const movementKind = quote.isClose ? "Change from previous close" : "Day change · NSE";
+    $("#research-card").innerHTML = `<div class="research-layout"><div class="panel research-main"><div class="company-title"><span class="company-logo">${esc(company.short || company.symbol.slice(0, 5))}</span><div><h2>${esc(company.name || company.symbol)}</h2><p>${esc(company.symbol)} · ${esc(company.sector || "NSE listed equity")} · NSE</p></div><button class="quiet-btn company-actions" type="button" data-company-action="${tracked ? "untrack" : "track"}" data-symbol="${esc(company.symbol)}">${tracked ? "✓ In portfolio" : "＋ Portfolio"}</button><button class="quiet-btn" type="button" data-company-action="${watched ? "unwatch" : "watch"}" data-symbol="${esc(company.symbol)}">${watched ? "★ Saved" : "☆ Watch"}</button></div><div class="metric-grid"><div class="metric"><span>${priceKind}</span><b>${quote.price == null ? "Unavailable" : `₹${formatNumber(quote.price)}`}</b><small class="${quote.change != null && quote.change < 0 ? "down" : "up"}">${formatPercent(quote.change)}</small></div><div class="metric"><span>${movementKind}</span><b>${quote.absoluteChange == null ? "Unavailable" : `₹${formatNumber(quote.absoluteChange)}`}</b><small>${quote.isClose ? "Calculated from NSE closes" : "As reported by NSE"}</small></div><div class="metric"><span>Revenue</span><b>Not in feed</b><small>Verify in company filings</small></div><div class="metric"><span>Profit</span><b>Not in feed</b><small>Verify in company filings</small></div></div><section class="research-section"><div class="chart-heading"><div><span class="eyebrow">PRICE HISTORY · END OF DAY</span><h3>${esc(company.name || company.symbol)}</h3></div><span class="source-label">${company.history?.length || 0} observations</span></div>${svgChart(company.history || [], company.name || company.symbol)}</section><section class="research-section"><h3>Recent corporate announcements</h3><p class="source-status">NSE announcement metadata. Open the filing to verify its full contents.</p><div id="announcement-list"></div></section><section class="research-section"><h3>Fundamentals</h3><p>Quarterly revenue, EBITDA, profit, margins and market capitalization are not supplied by this live market feed, so FINN leaves them blank. Open a primary disclosure to inspect reported financial statements.</p></section></div><aside class="panel research-side"><h3>Data quality & sources</h3><div class="source-item"><b>Quote</b><small>${esc(company.freshness || "NSE delayed intraday feed")}</small><a href="https://www.nseindia.in/nse-mcp" target="_blank" rel="noopener noreferrer">NSE market data terms ↗</a></div><div class="source-item"><b>Price history</b><small>End-of-day values from the exchange history feed.</small></div><div class="source-item"><b>AI research</b><small>Ask FINN summarizes recent NSE announcement metadata; it does not claim to read filing attachments.</small></div></aside></div>`;
     listAnnouncements(company);
     renderChips();
   }
