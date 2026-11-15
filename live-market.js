@@ -14,7 +14,7 @@
   const titleCase = (value) => String(value || "").replace(/[_-]+/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
   const normKey = (key) => String(key).toLowerCase().replace(/[^a-z0-9]/g, "");
   const formatNumber = (value, digits = 2) => Number.isFinite(Number(value)) ? new Intl.NumberFormat("en-IN", { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(Number(value)) : "Unavailable";
-  const formatPercent = (value) => Number.isFinite(Number(value)) ? `${Number(value) > 0 ? "+" : ""}${Number(value).toFixed(2)}%` : "—";
+  const formatPercent = (value) => value != null && value !== "" && Number.isFinite(Number(value)) ? `${Number(value) > 0 ? "+" : ""}${Number(value).toFixed(2)}%` : "—";
   const asRows = (value) => {
     if (Array.isArray(value)) return value;
     if (value && typeof value === "object") {
