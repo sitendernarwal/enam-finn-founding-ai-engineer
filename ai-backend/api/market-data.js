@@ -1,5 +1,5 @@
 import { cachedData, timedStages } from "../lib/data-cache.js";
-import { getFilings, NSE_FILINGS_PAGE } from "../lib/nse-filings.js";
+import { getFilings, nseTime, NSE_FILINGS_PAGE } from "../lib/nse-filings.js";
 
 const ALLOWED_ORIGINS = new Set([
   "https://sitendernarwal.github.io",
@@ -10,6 +10,42 @@ const ALLOWED_ORIGINS = new Set([
 ]);
 const NSE_LIVE_MCP = "https://mcp.nseindia.in/cmmkt/mcp";
 const NSE_EOD_MCP = "https://mcp.nseindia.in/bhavcopy/cm/mcp";
+const ACTIVE_QUOTE_TTL_SECONDS = 45;
+const CLOSED_QUOTE_TTL_SECONDS = 900;
+
+function isNseQuoteSession(now = new Date()) {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+  }).formatToParts(now).map(({ type, value }) => [type, value]));
+  if (["Sat", "Sun"].includes(parts.weekday)) return false;
+  const minutes = Number(parts.hour) * 60 + Number(parts.minute);
+  // Include the NSE pre-open and close transition around the regular session.
+  return minutes >= 9 * 60 && minutes < 15 * 60 + 35;
+}
+
+function sourceTimestamp(value, depth = 0) {
+  if (depth > 6 || value == null || typeof value !== "object") return null;
+  const timestampKeys = new Set(["lastupdated", "lastupdatetime", "timestamp", "tradetime", "asof", "asofdate", "datetime"]);
+  for (const [key, candidate] of Object.entries(value)) {
+    const normalized = key.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (!timestampKeys.has(normalized) || candidate == null || candidate === "") continue;
+    const raw = typeof candidate === "number" ? candidate : String(candidate).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(raw))) continue;
+    const numeric = Number(raw);
+    const parsed = Number.isFinite(numeric) && /^\d{10,13}$/.test(String(raw))
+      ? new Date(numeric < 1e12 ? numeric * 1000 : numeric).getTime()
+      : nseTime(raw);
+    if (parsed > 0 && Number.isFinite(parsed)) return new Date(parsed).toISOString();
+  }
+  for (const child of Object.values(value)) {
+    if (child && typeof child === "object") {
+      const timestamp = sourceTimestamp(child, depth + 1);
+      if (timestamp) return timestamp;
+    }
+  }
+  return null;
+}
+
 function send(res, status, payload, headers = {}) {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -179,7 +215,7 @@ async function getAnnouncements(symbol) {
     const { value } = await getFilings(symbol);
     const cutoff = Date.now() - 90 * 86400_000;
     const items = value.items.filter(item => !item.timestamp || item.timestamp >= cutoff).slice(0, 10)
-      .map(({ title, details, date, source }) => ({ title, details, date, source }));
+      .map(({ title, details, date, timestamp, source }) => ({ title, details, date, timestamp, source }));
     return { sourceUrl: value.url, items, available: true };
   } catch {
     return { sourceUrl: NSE_FILINGS_PAGE, items: [], available: false };
@@ -196,7 +232,8 @@ async function getLiveOverview() {
       gainersTool && callTool(NSE_LIVE_MCP, gainersTool, { sessionId, signal, id: 4 }).catch(() => null),
       losersTool && callTool(NSE_LIVE_MCP, losersTool, { sessionId, signal, id: 5 }).catch(() => null)
     ]);
-    return { indices, gainers, losers, asOf: new Date().toISOString(),
+    const sourceAsOf = [indices, gainers, losers].map((value) => sourceTimestamp(value)).filter(Boolean).sort().at(-1) || null;
+    return { indices, gainers, losers, asOf: new Date().toISOString(), sourceAsOf,
       delay: "NSE reports a 1–3 minute delay during trading hours", source: "https://www.nseindia.in/nse-mcp" };
   });
 }
@@ -271,13 +308,21 @@ async function searchCompanies(query) {
   });
 }
 
-async function getCompany(symbol) {
-  const [quote, history, announcements] = await Promise.all([
-    withMcp(NSE_LIVE_MCP, async ({ tools, sessionId, signal }) => {
-      const tool = findTool(tools, ["cm_get_stock_quote"]);
-      if (!tool) throw new Error("NSE_MCP_QUOTE_TOOL_UNAVAILABLE");
-      return callTool(NSE_LIVE_MCP, tool, { symbol, sessionId, signal });
-    }).catch(() => null),
+async function getCompany(symbol, session) {
+  const [quoteResult, history, announcements] = await Promise.all([
+    cachedData(`equity-quote:${session}:${symbol}`, {
+      ttl: session === "active" ? ACTIVE_QUOTE_TTL_SECONDS : CLOSED_QUOTE_TTL_SECONDS,
+      shared: true, cacheable: result => result?.quote != null
+    },
+      async () => ({
+        quote: await withMcp(NSE_LIVE_MCP, async ({ tools, sessionId, signal }) => {
+          const tool = findTool(tools, ["cm_get_stock_quote"]);
+          if (!tool) throw new Error("NSE_MCP_QUOTE_TOOL_UNAVAILABLE");
+          return callTool(NSE_LIVE_MCP, tool, { symbol, sessionId, signal });
+        }),
+        retrievedAt: new Date().toISOString()
+      })
+    ).then(({ value }) => value).catch(() => null),
     cachedData(`equity-history:${symbol}`, { ttl: 1800, shared: true, cacheable: value => listFrom(value).length > 0 },
       () => withMcp(NSE_EOD_MCP, async ({ tools, sessionId, signal }) => {
         const tool = findTool(tools, ["get_stock_history"]);
@@ -287,14 +332,19 @@ async function getCompany(symbol) {
     ).then(({ value }) => value).catch(() => null),
     getAnnouncements(symbol)
   ]);
+  const quote = quoteResult?.quote ?? null;
   if (quote == null && history == null && !announcements.available) throw new Error("NSE_MCP_COMPANY_DATA_UNAVAILABLE");
+  const retrievedAt = new Date().toISOString();
   return {
     symbol,
     quote,
     history,
     announcements,
     source: "https://www.nseindia.in/nse-mcp",
-    updatedAt: new Date().toISOString(),
+    updatedAt: retrievedAt,
+    retrievedAt,
+    quoteRetrievedAt: quoteResult?.retrievedAt || null,
+    quoteAsOf: sourceTimestamp(quote),
     freshness: "NSE says intraday data may be delayed by 1–3 minutes; historical candles are end-of-day."
   };
 }
@@ -319,14 +369,16 @@ export default async function handler(req, res) {
   const query = String(req.query?.q || "").trim().slice(0, 80);
   if (view === "company" && !/^[A-Z0-9&.-]{1,24}$/.test(symbol)) return send(res, 400, { error: "Enter a valid NSE symbol." }, headers);
   if (view === "search" && query.length < 2) return send(res, 400, { error: "Enter at least two letters to search NSE listings." }, headers);
-  const key = view === "company" ? `company:${symbol}` : view === "search" ? `search:${query.toUpperCase()}` : "overview";
+  const session = isNseQuoteSession() ? "active" : "closed";
+  const key = view === "company" ? `company:${session}:${symbol}`
+    : view === "search" ? `search:${query.toUpperCase()}` : `overview:${session}`;
   const timing = timedStages(res);
   try {
     const { value, cache } = await timing.run("market", () => cachedData(key, {
-      ttl: view === "search" ? 600 : 45,
+      ttl: view === "search" ? 600 : view === "overview" && session === "closed" ? CLOSED_QUOTE_TTL_SECONDS : ACTIVE_QUOTE_TTL_SECONDS,
       cacheable: result => view === "overview" ? Boolean(result.indices || result.history || result.eodMovers)
         : view === "company" ? Boolean(result.quote || result.history) : result.items.length > 0
-    }, () => view === "company" ? getCompany(symbol) : view === "search" ? searchCompanies(query) : getOverview(timing)));
+    }, () => view === "company" ? getCompany(symbol, session) : view === "search" ? searchCompanies(query) : getOverview(timing)));
     timing.finish();
     return send(res, 200, value, { ...headers, "X-Finn-Cache": cache });
   } catch (error) {

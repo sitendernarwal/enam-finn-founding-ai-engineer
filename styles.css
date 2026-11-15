@@ -251,4 +251,4 @@ body{
   .network-draft .quiet-btn{align-self:flex-start}
   .threshold-actions{align-items:stretch;flex-direction:column}
 }
-
+.metric small.data-asof{display:block;margin-top:4px;color:var(--muted);font-size:9px;font-weight:400;line-height:1.35}

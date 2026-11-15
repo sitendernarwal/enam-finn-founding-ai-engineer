@@ -7,7 +7,7 @@
   <meta name="description" content="FINN — live, source-linked Indian equity research">
   <script>try{document.documentElement.dataset.theme=localStorage.getItem('finn-theme')==='light'?'light':'dark'}catch{document.documentElement.dataset.theme='dark'}</script>
   <title>FINN — Investor intelligence</title>
-  <link rel="stylesheet" href="styles.css?v=live-nse-20261115-v2">
+  <link rel="stylesheet" href="styles.css?v=finn-quote-v1">
   <link rel="stylesheet" href="enhancements.css?v=liquid-glass-20261115-v6">
   <link rel="stylesheet" href="liquid-glass.css?v=finn-premium-v5">
 </head>
@@ -68,7 +68,7 @@
           <footer class="disclaimer">Network details are synthetic product examples. Do not treat them as real people, referrals, or diligence.</footer>
         </section>
         <section class="view" id="view-portfolio">
-          <div class="page-heading"><div><div class="eyebrow">Tracked equities</div><h1>Portfolio</h1><p class="subhead">Track companies you add. Quotes are fetched from the NSE feed.</p></div><button class="quiet-btn" type="button" data-go-view="research">＋ <span>Find companies</span></button></div>
+          <div class="page-heading"><div><div class="eyebrow">Tracked equities</div><h1>Portfolio</h1><p class="subhead">A 16-company demo coverage list is preloaded on first visit. Edit it to track your own companies; positions and returns are not stored.</p></div><button class="quiet-btn" type="button" data-go-view="research">＋ <span>Find companies</span></button></div>
           <div class="portfolio-summary" id="portfolio-summary" aria-live="polite"></div>
           <div class="portfolio-toolbar"><label class="search-box"><span aria-hidden="true">⌕</span><input id="portfolio-search" type="search" placeholder="Filter tracked companies…" aria-label="Filter portfolio companies"></label><span class="source-label">Saved on this device</span></div>
           <div class="portfolio-grid" id="portfolio-list" aria-live="polite"></div>
@@ -87,8 +87,8 @@
   <div class="modal-backdrop" id="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" id="modal-close" aria-label="Close">×</button><div class="eyebrow" id="modal-eyebrow">FINN</div><h2 id="modal-title"></h2><div id="modal-body"></div></div></div>
   <script src="enhancements.js?v=finn-lens-v8"></script>
   <script src="ai-config.js?v=live-nse-20261115-v2"></script>
-  <script src="live-market.js?v=finn-workspace-v3"></script>
-  <script src="product-workflows.js?v=finn-signals-v1"></script>
+  <script src="live-market.js?v=finn-workspace-v4"></script>
+  <script src="product-workflows.js?v=finn-signals-v2"></script>
   <script src="ask-finn.js?v=finn-evidence-v1"></script>
 </body>
 </html>

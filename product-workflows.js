@@ -79,17 +79,31 @@
 
   function categoryOf(item) {
     const text = `${item?.title || ""} ${item?.details || ""} ${item?.category || ""}`.toLowerCase();
-    if (/result|quarterly|financial performance|earnings|audited financial|unaudited financial/.test(text)) return "Results";
+    if (/\b(?:financial results?|quarterly results?|annual results?|earnings|financial performance|audited financial|unaudited financial)\b/.test(text)) return "Results";
     if (/merger|acquisition|acquire|amalgamat|scheme of arrangement|joint venture|strategic investment|business transfer|capex|capital expenditure/.test(text)) return "Strategic event";
     if (/resign|appointment|appointed|chief executive|chief financial|managing director|whole.time director|key managerial|management change|board of director/.test(text)) return "Leadership";
     if (/litigation|court|tribunal|penalt|show cause|regulatory|sebi|tax demand|legal notice|order received/.test(text)) return "Legal / regulatory";
     return null;
   }
 
-  function filingDate(value) {
+  function filingDate(value, timestamp) {
+    const epoch = Number(timestamp);
+    if (Number.isFinite(epoch) && epoch > 0) return new Date(epoch);
     if (!value) return null;
-    const normalized = String(value).trim().replace(/(\d{1,2})[-/ ]([A-Za-z]{3})[-/ ](\d{4})/, "$2 $1, $3");
-    const date = new Date(normalized);
+    const source = String(value).trim();
+    const match = source.match(/^(\d{1,2})[-/ ]([A-Za-z]{3}|\d{1,2})[-/ ](\d{4})(?:[ T]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+    if (match) {
+      const [, day, monthText, year, hour = "0", minute = "0", second = "0"] = match;
+      const month = /^\d+$/.test(monthText) ? Number(monthText) : ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"].indexOf(monthText.slice(0, 3).toLowerCase()) + 1;
+      if (month < 1 || month > 12) return null;
+      const wallTime = Date.UTC(Number(year), month - 1, Number(day), Number(hour), Number(minute), Number(second));
+      const date = new Date(wallTime);
+      const valid = date.getUTCDate() === Number(day) && date.getUTCMonth() === month - 1 &&
+        date.getUTCHours() === Number(hour) && date.getUTCMinutes() === Number(minute) && date.getUTCSeconds() === Number(second);
+      return valid ? new Date(wallTime - 330 * 60 * 1000) : null;
+    }
+    if (!/^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(source)) return null;
+    const date = new Date(source);
     return Number.isNaN(date.getTime()) ? null : date;
   }
 
@@ -128,10 +142,10 @@
         const category = categoryOf(item);
         if (!category) continue;
         if (selectedCategories && !selectedCategories.has(category)) continue;
-        const date = filingDate(item.date);
+        const date = filingDate(item.date, item.timestamp);
         if (!withinWindow(date, windowHours)) continue;
         const summary = String(item.details || "").trim().replace(/\s+/g, " ").slice(0, 240);
-        alerts.push({ priority: category === "Leadership" || category === "Strategic event" || category === "Legal / regulatory" ? 0 : 1, kind: "filing", category, symbol: entry.symbol, name: company.name || entry.name || entry.symbol, headline: String(item.title || "NSE filing"), detail: summary || "NSE returned filing metadata; open the primary filing for its contents.", date: item.date || "Date not provided by NSE", dateValue: date, source: safeNseUrl(item.source?.url), network: bySymbol(entry.symbol)[0], sortDate: date?.getTime() || 0 });
+        alerts.push({ priority: category === "Leadership" || category === "Strategic event" || category === "Legal / regulatory" ? 2 : 1, kind: "filing", category, symbol: entry.symbol, name: company.name || entry.name || entry.symbol, headline: String(item.title || "NSE filing"), detail: summary || "NSE returned filing metadata; open the primary filing for its contents.", date: item.date || "Date not provided by NSE", dateValue: date, source: safeNseUrl(item.source?.url), network: bySymbol(entry.symbol)[0], sortDate: date?.getTime() || 0 });
       }
     }
     alerts.sort((a, b) => b.priority - a.priority || b.sortDate - a.sortDate || (Math.abs(number(b.value) || 0) - Math.abs(number(a.value) || 0)));
@@ -242,7 +256,17 @@
       renderNetworkInsights();
       renderNetwork();
       renderFoundingPush();
-      window.FINN_LIVE?.loadPortfolio();
+      const pushTarget = $("#founding-push-list");
+      if (pushTarget && "IntersectionObserver" in window) {
+        const observer = new IntersectionObserver((entries) => {
+          if (!entries.some((entry) => entry.isIntersecting)) return;
+          observer.disconnect();
+          window.FINN_LIVE?.loadPortfolio();
+        }, { rootMargin: "160px" });
+        observer.observe(pushTarget);
+      } else if (pushTarget) {
+        window.FINN_LIVE?.loadPortfolio();
+      } else window.FINN_LIVE?.loadPortfolio();
     } else {
       const threshold = $("#signal-threshold");
       const digest = $("#digest-window");
