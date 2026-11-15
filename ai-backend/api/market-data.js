@@ -108,10 +108,13 @@ function buildArguments(tool, { symbol, query, index, direction, date, limit }) 
     else if (index && /index/.test(normalized)) args[key] = index;
     else if (query && /(query|search|company|name)/.test(normalized)) args[key] = query;
     else if (date && /^(date|tradedate|sessiondate|asofdate)$/.test(normalized)) args[key] = date;
-    else if (direction && /(direction|movertype|gainerloser)/.test(normalized)) {
-      args[key] = descriptor?.enum?.find((value) => normalize(value) === normalize(direction)) || direction;
+    else if (direction && Array.isArray(descriptor?.enum) && descriptor.enum.some((value) => normalize(value) === normalize(direction))) {
+      args[key] = descriptor.enum.find((value) => normalize(value) === normalize(direction));
     }
-    else if (limit != null && /^(limit|count|pagesize|maxrecords)$/.test(normalized)) args[key] = limit;
+    else if (direction && /(direction|mover|gainerloser|sortby)/.test(normalized)) {
+      args[key] = direction;
+    }
+    else if (limit != null && /^(limit|count|pagesize|maxrecords|topn|numberofstocks|numresults|numstocks)$/.test(normalized)) args[key] = limit;
     else if (/(start|from).*(date|time)|^(fromdate|startdate)$/.test(normalized)) args[key] = dateValue("from");
     else if (/(end|to).*(date|time)|^(todate|enddate)$/.test(normalized)) args[key] = dateValue("to");
     else if (/^(period|range|duration|lookback)$/.test(normalized)) args[key] = descriptor?.enum?.find((value) => ["3M", "90D", "3MONTHS", "1Y"].includes(String(value).toUpperCase().replace(/[^A-Z0-9]/g, ""))) || descriptor?.enum?.[0] || "3M";
