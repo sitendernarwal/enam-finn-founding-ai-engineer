@@ -8,12 +8,12 @@
         <div>
           <span class="eyebrow">AI · OFFICIAL DISCLOSURES</span>
           <h3 id="finn-ai-heading">Ask FINN</h3>
-          <p class="finn-ai-intro">Review recent NSE filings and show official source links when available.</p>
+          <p class="finn-ai-intro">FINN summarizes NSE announcement metadata. Open official filings for full details.</p>
         </div>
         <span class="finn-ai-badge" id="finn-ai-badge">Checking service</span>
       </div>
       <div class="finn-ai-suggestions" aria-label="Suggested research questions">
-        <button type="button" data-finn-question="Summarise the latest results filing and cite its reporting period.">Latest results</button>
+        <button type="button" data-finn-question="What does the NSE metadata show for the latest results-related filing? Separate its filing date from the reporting period, and say if the period or figures are not provided.">Results metadata</button>
         <button type="button" data-finn-question="What recent official disclosures could materially affect this company? Include dates and sources.">Recent disclosures</button>
         <button type="button" data-finn-question="What does the latest official filing say about the company's outlook? Cite the source.">Management outlook</button>
       </div>
