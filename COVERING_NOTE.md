@@ -4,11 +4,11 @@
 
 Hello ENAM team,
 
-I built FINN, a mobile-first investor workflow prototype that connects market monitoring with company research. The Market view uses official NSE market data, including dated end-of-day fallbacks; selecting a mover opens its company research page with exchange price history and links to primary disclosures.
+I built FINN, a mobile-first investor workflow prototype that connects market monitoring with company research and a private-network intelligence layer. The first visit loads a 16-company NSE coverage universe; the company list is a demo selection, while prices, filings, and historical chart points come from NSE. The portfolio stores coverage symbols, not quantities or investment returns.
 
-Ask FINN provides an optional Gemini-assisted summary grounded in recent NSE announcement metadata, with official source links. It does not read filing attachments or supply company financial statements, so unsupported revenue, profit, and valuation figures remain unavailable. Portfolio and watchlist entries are stored on the device. The Network view stays empty until an authorized contact source is connected.
+Ask FINN provides an optional Gemini-assisted summary grounded in recent NSE announcement metadata, with official source links. The Network view demonstrates who could add context in both company research and the portfolio digest. Its people, career histories, links, and reconnect cues are synthetic and labeled; no contacts are connected. It does not read filing attachments, annual reports, or transcripts, so unsupported financial statements remain unavailable.
 
-The interface defaults to dark mode, includes a light-mode toggle, and adapts its navigation and charts to phone screens.
+The interface uses a refractive Liquid Glass treatment for the top bar and mobile dock, with clear surfaces for charts and data. It defaults to dark mode, includes a light-mode toggle, and adapts its workflows to phone screens.
 
 **Prototype:** https://sitendernarwal.github.io/enam-finn-founding-ai-engineer/  
 **Public repository:** https://github.com/sitendernarwal/enam-finn-founding-ai-engineer  

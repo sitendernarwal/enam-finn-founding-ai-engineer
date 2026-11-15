@@ -6,9 +6,15 @@
   const endpoint = window.FINN_AI_CONFIG?.marketEndpoint || "https://finn-ai-api.vercel.app/api/market-data";
   const appId = document.body.dataset.app === "ai-engineer" ? "ai-engineer" : "founding-ai-engineer";
   const storage = { portfolio: `finn-live-portfolio-${appId}`, watchlist: `finn-live-watchlist-${appId}` };
+  const DEMO_PORTFOLIO = [
+    ["RELIANCE", "Reliance Industries"], ["HDFCBANK", "HDFC Bank"], ["ICICIBANK", "ICICI Bank"], ["SBIN", "State Bank of India"],
+    ["INFY", "Infosys"], ["TCS", "Tata Consultancy Services"], ["LT", "Larsen & Toubro"], ["ITC", "ITC"],
+    ["BHARTIARTL", "Bharti Airtel"], ["SUNPHARMA", "Sun Pharmaceutical Industries"], ["MARUTI", "Maruti Suzuki India"], ["TITAN", "Titan Company"],
+    ["POWERGRID", "Power Grid Corporation of India"], ["ONGC", "Oil & Natural Gas Corporation"], ["ULTRACEMCO", "UltraTech Cement"], ["TRENT", "Trent"]
+  ].map(([symbol, name]) => ({ symbol, name }));
   const state = {
     view: "home", overview: null, movers: [], moverFilter: "all", moverMode: "live", moverDate: "", search: [], selected: null,
-    companies: new Map(), portfolio: read(storage.portfolio), watchlist: read(storage.watchlist), searchTimer: 0, searchSequence: 0
+    companies: new Map(), portfolio: readPortfolio(storage.portfolio), watchlist: read(storage.watchlist), searchTimer: 0, searchSequence: 0
   };
   let overviewLoading = false;
   let lastOverviewSuccessAt = 0;
@@ -31,6 +37,19 @@
       const value = JSON.parse(localStorage.getItem(key) || "[]");
       return Array.isArray(value) ? value.filter((item) => item && /^[A-Z0-9&.-]{1,24}$/.test(String(item.symbol || ""))) : [];
     } catch { return []; }
+  }
+  function readPortfolio(key) {
+    let saved = null;
+    let seeded = false;
+    try { saved = JSON.parse(localStorage.getItem(key) || "null"); } catch {}
+    const seededKey = `${key}-demo-universe-v1`;
+    try { seeded = localStorage.getItem(seededKey) === "1"; } catch {}
+    if ((!Array.isArray(saved) || saved.length === 0) && !seeded) {
+      write(key, DEMO_PORTFOLIO);
+      try { localStorage.setItem(seededKey, "1"); } catch {}
+      return DEMO_PORTFOLIO.map((entry) => ({ ...entry }));
+    }
+    return Array.isArray(saved) ? saved.filter((item) => item && /^[A-Z0-9&.-]{1,24}$/.test(String(item.symbol || ""))) : [];
   }
   function write(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} }
   async function request(params) {
@@ -59,20 +78,42 @@
     toast.timer = window.setTimeout(() => node.classList.remove("show"), 2400);
   }
   function navigate(view, options = {}) {
-    const allowed = new Set(["home", "research", "portfolio", "watchlist", "network"]);
-    if (!allowed.has(view)) return;
+    if (!document.querySelector(`.nav-item[data-view="${view}"]`) || !document.getElementById(`view-${view}`)) return;
     state.view = view;
     $$(".nav-item").forEach((button) => button.classList.toggle("active", button.dataset.view === view));
     $$(".view").forEach((section) => section.classList.toggle("active", section.id === `view-${view}`));
-    const labels = { home: "Market", research: "Research", portfolio: "Portfolio", watchlist: "Watchlist", network: "Network" };
+    const labels = { home: "Market", research: "Research", portfolio: "Portfolio", watchlist: "Watchlist", network: "Network", signals: "Signals" };
     if ($("#crumb-current")) $("#crumb-current").textContent = labels[view];
     if (!options.fromHash && location.hash !== `#${view}`) history.replaceState(null, "", `#${view}`);
     if (view === "portfolio") renderPortfolio();
     if (view === "watchlist") renderWatchlist();
+    if (view === "signals") window.dispatchEvent(new CustomEvent("finn:signals-view-opened"));
     window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }
   window.navigate = navigate;
-  window.FINN_LIVE = { get selected() { return state.selected; }, refresh: loadOverview };
+  window.FINN_LIVE = {
+    get selected() { return state.selected; },
+    get movers() { return state.movers; },
+    get moverMode() { return state.moverMode; },
+    get moverDate() { return state.moverDate; },
+    get portfolio() { return state.portfolio; },
+    get companies() { return state.companies; },
+    refresh: loadOverview,
+    loadPortfolio: (force = false) => {
+      let cursor = 0;
+      const worker = async () => {
+        while (cursor < state.portfolio.length) {
+          const entry = state.portfolio[cursor++];
+          if (force) {
+            const current = state.companies.get(entry.symbol);
+            if (current) current.loadedAt = 0;
+          }
+          await ensureCompany(entry.symbol, entry.name, false);
+        }
+      };
+      return Promise.all(Array.from({ length: Math.min(3, state.portfolio.length) }, worker));
+    }
+  };
 
   function objectsDeep(value, depth = 0, output = []) {
     if (depth > 6 || value == null) return output;
@@ -232,9 +273,11 @@
     if (count) count.textContent = String(items.length);
     if (!items.length) {
       list.innerHTML = `<div class="panel empty-state">${state.overview ? "No verified NSE market movers were returned for the latest trading session. No sample prices are substituted." : "NSE market data is temporarily unavailable. Please refresh in a moment."}</div>`;
+      window.dispatchEvent(new CustomEvent("finn:movers-updated", { detail: { items: state.movers, mode: state.moverMode, date: state.moverDate } }));
       return;
     }
     list.innerHTML = items.map((item) => `<button type="button" class="feed-card live-mover" data-symbol="${esc(item.symbol)}" aria-label="Open ${esc(item.name)} research"><span class="priority-bar ${item.direction === "up" ? "low" : "high"}"></span><span class="company-logo">${esc(item.symbol.slice(0, 5))}</span><span class="card-main"><span class="card-meta"><span class="ticker">${esc(item.symbol)}</span><span class="tag ${item.direction === "up" ? "results" : "market"}">${item.direction === "up" ? "Gainer" : "Loser"}</span></span><span class="feed-title">${esc(item.name)}</span><span class="feed-copy">${item.mode === "eod" ? `Official NSE end-of-day data for ${esc(state.moverDate || "the latest trading session")}.` : "Official NSE market-mover data."} Tap to open company research.</span></span><span class="card-right"><span class="move ${item.direction}">${formatPercent(item.quote.change)}</span><small>${item.quote.price == null ? "Price unavailable" : `₹${formatNumber(item.quote.price)}`}</small></span></button>`).join("");
+    window.dispatchEvent(new CustomEvent("finn:movers-updated", { detail: { items: state.movers, mode: state.moverMode, date: state.moverDate } }));
   }
   async function loadOverview() {
     if (overviewLoading) return;
@@ -298,10 +341,10 @@
     const query = String($("#portfolio-search")?.value || "").trim().toLowerCase();
     const entries = state.portfolio.filter((item) => `${item.name} ${item.symbol}`.toLowerCase().includes(query));
     const summary = $("#portfolio-summary");
-    if (summary) summary.innerHTML = `<div class="portfolio-stat"><span>Tracked companies</span><b>${state.portfolio.length}</b><small>Saved on this device</small></div><div class="portfolio-stat"><span>Market data</span><b>NSE</b><small>Live quote when available</small></div><div class="portfolio-stat"><span>Watchlist</span><b>${state.watchlist.length}</b><small>Saved on this device</small></div>`;
+    if (summary) summary.innerHTML = `<div class="portfolio-stat"><span>Demo universe</span><b>${state.portfolio.length}</b><small>Listed companies · this device</small></div><div class="portfolio-stat"><span>Market data</span><b>NSE</b><small>Actual exchange quote when available</small></div><div class="portfolio-stat"><span>Watchlist</span><b>${state.watchlist.length}</b><small>Saved on this device</small></div>`;
     const list = $("#portfolio-list");
-    if (list) list.innerHTML = entries.length ? entries.map((entry) => companyCard(entry, "portfolio")).join("") : emptyList(query ? "No tracked company matches" : "Your portfolio is empty", query ? "Try a different name or symbol." : "Search for a company, then add it to your portfolio. No positions or sample companies are preloaded.");
-    entries.forEach((entry) => ensureCompany(entry.symbol, entry.name, false));
+    if (list) list.innerHTML = entries.length ? entries.map((entry) => companyCard(entry, "portfolio")).join("") : emptyList(query ? "No tracked company matches" : "Your demo universe is empty", query ? "Try a different name or symbol." : "Search for NSE-listed companies to build a coverage universe. This list never represents positions or investment returns.");
+    if (state.view === "portfolio") entries.forEach((entry) => ensureCompany(entry.symbol, entry.name, false));
     persistLists();
   }
   function renderWatchlist() {
@@ -419,6 +462,7 @@
         const updated = { ...current, symbol, name: String(field(payload.quote, ["companyName", "company", "securityName", "name"]) || current.name || symbol), quoteData: quote, rawQuote: payload.quote, history, announcements: payload.announcements || { items: [] }, updatedAt: payload.updatedAt || new Date().toISOString(), source: payload.source, freshness: payload.freshness, historyAsOf: String(field(lastHistoryRow, ["date", "tradeDate", "tradingDate"]) || ""), loadedAt: Date.now(), loading: null };
         state.companies.set(symbol, updated);
         if (state.selected?.symbol === symbol || open) { state.selected = updated; renderResearch(); }
+        window.dispatchEvent(new CustomEvent("finn:company-updated", { detail: updated }));
         if (state.view === "portfolio") renderPortfolio();
         if (state.view === "watchlist") renderWatchlist();
         return updated;
@@ -426,6 +470,7 @@
         current.loading = null;
         current.error = error.message;
         state.companies.set(symbol, current);
+        window.dispatchEvent(new CustomEvent("finn:company-updated", { detail: current }));
         if (open) {
           state.selected = current;
           $("#research-card").innerHTML = `<div class="panel analysis-note"><b>Live company data is unavailable.</b><p>${esc(error.message)}</p><button type="button" class="primary-btn" data-retry-company="${esc(symbol)}">Try again</button></div>`;
@@ -448,6 +493,7 @@
     $("#research-card").innerHTML = `<div class="research-layout"><div class="panel research-main"><div class="company-title"><span class="company-logo">${esc(company.short || company.symbol.slice(0, 5))}</span><div><h2>${esc(company.name || company.symbol)}</h2><p>${esc(company.symbol)} · ${esc(company.sector || "NSE listed equity")} · NSE</p></div><button class="quiet-btn company-actions" type="button" data-company-action="${tracked ? "untrack" : "track"}" data-symbol="${esc(company.symbol)}">${tracked ? "✓ In portfolio" : "＋ Portfolio"}</button><button class="quiet-btn" type="button" data-company-action="${watched ? "unwatch" : "watch"}" data-symbol="${esc(company.symbol)}">${watched ? "★ Saved" : "☆ Watch"}</button></div><div class="metric-grid"><div class="metric"><span>${priceKind}</span><b>${quote.price == null ? "Unavailable" : `₹${formatNumber(quote.price)}`}</b><small class="${quote.change != null && quote.change < 0 ? "down" : "up"}">${formatPercent(quote.change)}</small></div><div class="metric"><span>${movementKind}</span><b>${quote.absoluteChange == null ? "Unavailable" : `₹${formatNumber(quote.absoluteChange)}`}</b><small>${quote.isClose ? "Calculated from NSE closes" : "As reported by NSE"}</small></div><div class="metric"><span>Revenue</span><b>Not in feed</b><small>Verify in company filings</small></div><div class="metric"><span>Profit</span><b>Not in feed</b><small>Verify in company filings</small></div></div><section class="research-section"><div class="chart-heading"><div><span class="eyebrow">PRICE HISTORY · END OF DAY</span><h3>${esc(company.name || company.symbol)}</h3></div><span class="source-label">${company.history?.length || 0} observations</span></div>${svgChart(company.history || [], company.name || company.symbol)}</section><section class="research-section"><h3>Recent corporate announcements</h3><p class="source-status">NSE announcement metadata. Open the filing to verify its full contents.</p><div id="announcement-list"></div></section><section class="research-section"><h3>Fundamentals</h3><p>Quarterly revenue, EBITDA, profit, margins and market capitalization are not supplied by this live market feed, so FINN leaves them blank. Open a primary disclosure to inspect reported financial statements.</p></section></div><aside class="panel research-side"><h3>Data quality & sources</h3><div class="source-item"><b>Quote</b><small>${esc(company.freshness || "NSE delayed intraday feed")}</small><a href="https://www.nseindia.in/nse-mcp" target="_blank" rel="noopener noreferrer">NSE market data terms ↗</a></div><div class="source-item"><b>Price history</b><small>End-of-day values from the exchange history feed.</small></div><div class="source-item"><b>AI research</b><small>Ask FINN summarizes recent NSE announcement metadata; it does not claim to read filing attachments.</small></div></aside></div>`;
     listAnnouncements(company);
     renderChips();
+    window.dispatchEvent(new CustomEvent("finn:company-selected", { detail: company }));
   }
   function openModal(title, body, eyebrow = "PROFILE") {
     $("#modal-title").textContent = title;
