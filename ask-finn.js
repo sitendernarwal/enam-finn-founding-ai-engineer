@@ -96,9 +96,12 @@
     }
   }
 
-  function plainAnswer(value) {
+  function plainAnswer(value, ticker) {
+    const escapedTicker = String(ticker || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     return String(value || "")
       .replace(/\[([^\]]+)\]\(https?:\/\/[^)\s]+\)/g, "$1")
+      .replace(new RegExp(`\\b${escapedTicker}\\s+Filing Link\\b`, "gi"), "the linked NSE filing")
+      .replace(/\b(?:the |a |your )?company filing link\b/gi, "the linked NSE filing")
       .replace(/\*\*(.*?)\*\*/g, "$1")
       .replace(/__(.*?)__/g, "$1")
       .replace(/\*([^*\n]+)\*/g, "$1")
@@ -159,7 +162,7 @@
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "FINN could not complete this request.");
 
-      if (answerText) answerText.textContent = plainAnswer(payload.answer) || "No answer was returned.";
+      if (answerText) answerText.textContent = plainAnswer(payload.answer, company.ticker) || "No answer was returned.";
       const sources = Array.isArray(payload.sources) ? payload.sources : [];
       const links = sources.map((source) => {
         const href = safeOfficialUrl(source.url);
