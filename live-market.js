@@ -98,6 +98,7 @@
     get moverDate() { return state.moverDate; },
     get portfolio() { return state.portfolio; },
     get companies() { return state.companies; },
+    openCompany: (symbol) => ensureCompany(symbol, symbol, true),
     refresh: loadOverview,
     loadPortfolio: (force = false) => {
       let cursor = 0;
