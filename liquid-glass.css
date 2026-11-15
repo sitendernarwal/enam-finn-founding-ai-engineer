@@ -520,3 +520,68 @@ html[data-theme="light"] .network-hero-glass p { color: #e5edf4; }
     backdrop-filter: url(#finn-glass-capsule) blur(26px) saturate(180%) contrast(1.06);
   }
 }
+
+/* Keep the phone dock calm and crisp; the data views provide the visual depth. */
+@media (max-width: 760px) {
+  .sidebar[data-glass="dock"] {
+    inset: auto 12px calc(10px + env(safe-area-inset-bottom)) 12px;
+    height: 72px;
+    padding: 4px 6px;
+    border: 1px solid rgba(38,57,70,.16);
+    border-radius: 23px;
+    background: rgba(247,250,252,.94);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(140%);
+    box-shadow: 0 10px 28px rgba(27,43,55,.16), inset 0 1px 0 rgba(255,255,255,.88);
+  }
+  html[data-theme="dark"] .sidebar[data-glass="dock"] {
+    border-color: rgba(224,237,246,.15);
+    background: rgba(24,31,39,.94);
+    box-shadow: 0 12px 32px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.12);
+  }
+  html[data-theme="light"] .sidebar[data-glass="dock"] {
+    border-color: rgba(38,57,70,.16);
+    background: rgba(247,250,252,.94);
+    box-shadow: 0 10px 28px rgba(27,43,55,.16), inset 0 1px 0 rgba(255,255,255,.88);
+  }
+  .sidebar[data-glass="dock"]::before,
+  .sidebar[data-glass="dock"]::after { display: none; }
+  .sidebar[data-glass="dock"] .nav { gap: 4px; }
+  .sidebar[data-glass="dock"] .nav-item {
+    height: 62px;
+    padding: 3px 2px;
+    gap: 4px;
+    border: 1px solid transparent;
+    border-radius: 16px;
+    color: #4d5d67;
+    text-shadow: none;
+    box-shadow: none;
+  }
+  html[data-theme="dark"] .sidebar[data-glass="dock"] .nav-item { color: #c2ced8; }
+  .sidebar[data-glass="dock"] .nav-item.active {
+    color: #145d42;
+    border-color: rgba(31,111,78,.12);
+    background: #e4f3ea;
+    box-shadow: none;
+    text-shadow: none;
+  }
+  html[data-theme="dark"] .sidebar[data-glass="dock"] .nav-item.active {
+    color: #b7f0ce;
+    border-color: rgba(122,224,170,.2);
+    background: rgba(66,157,112,.2);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  html[data-theme="light"] .sidebar[data-glass="dock"] .nav-item.active {
+    color: #145d42;
+    border-color: rgba(31,111,78,.12);
+    background: #e4f3ea;
+    box-shadow: none;
+    text-shadow: none;
+  }
+  .sidebar[data-glass="dock"] .nav-icon { font-size: 19px; }
+  .sidebar[data-glass="dock"] .nav-label { font-size: 9px; font-weight: 650; }
+  html[data-glass-refraction="supported"] .sidebar[data-glass="dock"] {
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(140%);
+  }
+}
