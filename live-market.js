@@ -337,8 +337,9 @@
       if (!isCurrentSearch()) return;
       state.search = items;
       state.search.forEach((item) => state.companies.set(item.symbol, { ...state.companies.get(item.symbol), ...item, short: item.symbol.slice(0, 5) }));
-      if (!state.search.length && /^[A-Z0-9&.-]{1,24}$/i.test(trimmed)) {
-        const symbol = trimmed.toUpperCase().replace(/\.NS$/, "");
+      const directSymbol = trimmed.toUpperCase().replace(/\.NS$/, "").replace(/[^A-Z0-9&.-]/g, "");
+      if (!state.search.length && /^[A-Z0-9&.-]{1,24}$/.test(directSymbol)) {
+        const symbol = directSymbol;
         state.search = [{ symbol, name: symbol, sector: "NSE listed equity" }];
       }
       renderChips();
