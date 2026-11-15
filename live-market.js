@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 9875)
+Total output lines: 523
+
 (() => {
   "use strict";
 
@@ -247,97 +250,7 @@
         const stamp = $("#market-asof");
         if (stamp) stamp.textContent = "Showing the last successful NSE update · refresh failed";
         const list = $("#feed");
-        if (list && error?.message) list.setAttribute("aria-label", `Refresh failed. Showing the last successful NSE data. ${error.message}`);
-      } else {
-        const stamp = $("#market-asof");
-        if (stamp) stamp.textContent = "NSE feed temporarily unavailable";
-        renderIndices(null);
-        renderMovers();
-        const list = $("#feed");
-        if (list && error?.message) list.setAttribute("aria-label", error.message);
-      }
-    } finally {
-      overviewLoading = false;
-      if (refresh) { refresh.disabled = false; refresh.removeAttribute("aria-busy"); }
-    }
-  }
-  function persistLists() {
-    write(storage.portfolio, state.portfolio);
-    write(storage.watchlist, state.watchlist);
-    const count = state.watchlist.length;
-    const badge = $("#watchlist-nav-count");
-    if (badge) { badge.textContent = String(count); badge.hidden = !count; }
-    const watchCount = $("#watchlist-market-count");
-    if (watchCount) watchCount.textContent = `${count} companies`;
-    const tracked = $("#portfolio-mini-count");
-    if (tracked) tracked.textContent = String(state.portfolio.length);
-  }
-  function companyCard(entry, mode) {
-    const company = state.companies.get(entry.symbol) || entry;
-    const quote = company.quoteData || { price: null, change: null };
-    const priceLabel = quote.isClose ? `Latest close${company.historyAsOf ? ` · ${company.historyAsOf}` : ""}` : "Live price · NSE";
-    const freshnessLabel = quote.isClose ? `End of day · ${company.historyAsOf || "date not provided"}` : company.updatedAt ? marketStamp(company.updatedAt) : "Price loads when available";
-    const isTracked = state.portfolio.some((item) => item.symbol === entry.symbol);
-    const isWatched = state.watchlist.some((item) => item.symbol === entry.symbol);
-    const remove = mode === "watchlist" ? `<button class="watch-action" data-watch-action="remove" data-symbol="${esc(entry.symbol)}">Remove</button>` : "";
-    return `<article class="portfolio-card panel"><div class="portfolio-card-head"><div class="portfolio-company-id"><span class="company-logo">${esc(company.short || entry.symbol.slice(0, 5))}</span><div><h3>${esc(company.name || entry.name || entry.symbol)}</h3><p>${esc(entry.symbol)} · ${esc(company.sector || "NSE listed equity")}</p></div></div>${remove}</div><div class="portfolio-card-metrics"><div><span>${esc(priceLabel)}</span><b>${quote.price == null ? "Unavailable" : `₹${formatNumber(quote.price)}`}</b></div><div><span>${quote.isClose ? "Change from previous close" : "Day change"}</span><b class="${quote.change != null && quote.change < 0 ? "down" : "up"}">${formatPercent(quote.change)}</b></div></div><div class="portfolio-card-footer"><span class="data-status">${esc(freshnessLabel)}</span><span class="card-actions"><button class="text-btn" data-card-action="${isTracked ? "untrack" : "track"}" data-symbol="${esc(entry.symbol)}">${isTracked ? "Remove from portfolio" : "Add to portfolio"}</button><button class="text-btn" data-card-action="${isWatched ? "unwatch" : "watch"}" data-symbol="${esc(entry.symbol)}">${isWatched ? "Remove watch" : "☆ Watch"}</button><button class="text-btn" data-open-company="${esc(entry.symbol)}">Research →</button></span></div></article>`;
-  }
-  function emptyList(title, copy, actionLabel = "Find a company") {
-    return `<div class="portfolio-empty panel"><span class="empty-star" aria-hidden="true">☆</span><b>${esc(title)}</b><p>${esc(copy)}</p><button class="primary-btn" type="button" data-go-view="research">${esc(actionLabel)} <span>→</span></button></div>`;
-  }
-  function renderPortfolio() {
-    const query = String($("#portfolio-search")?.value || "").trim().toLowerCase();
-    const entries = state.portfolio.filter((item) => `${item.name} ${item.symbol}`.toLowerCase().includes(query));
-    const summary = $("#portfolio-summary");
-    if (summary) summary.innerHTML = `<div class="portfolio-stat"><span>Tracked companies</span><b>${state.portfolio.length}</b><small>Saved on this device</small></div><div class="portfolio-stat"><span>Market data</span><b>NSE</b><small>Live quote when available</small></div><div class="portfolio-stat"><span>Watchlist</span><b>${state.watchlist.length}</b><small>Saved on this device</small></div>`;
-    const list = $("#portfolio-list");
-    if (list) list.innerHTML = entries.length ? entries.map((entry) => companyCard(entry, "portfolio")).join("") : emptyList(query ? "No tracked company matches" : "Your portfolio is empty", query ? "Try a different name or symbol." : "Search for a company, then add it to your portfolio. No positions or sample companies are preloaded.");
-    entries.forEach((entry) => ensureCompany(entry.symbol, entry.name, false));
-    persistLists();
-  }
-  function renderWatchlist() {
-    const summary = $("#watchlist-summary");
-    if (summary) summary.innerHTML = `<div class="watchlist-summary-card"><span>Saved companies</span><b>${state.watchlist.length}</b><small>This device only</small></div>`;
-    const list = $("#watchlist-list");
-    if (list) list.innerHTML = state.watchlist.length ? state.watchlist.map((entry) => companyCard(entry, "watchlist")).join("") : emptyList("Your watchlist is empty", "Follow a company from its research page to keep it here.");
-    state.watchlist.forEach((entry) => ensureCompany(entry.symbol, entry.name, false));
-    persistLists();
-  }
-  function toggleList(type, symbol, name) {
-    const collection = type === "watchlist" ? state.watchlist : state.portfolio;
-    const index = collection.findIndex((item) => item.symbol === symbol);
-    if (index >= 0) collection.splice(index, 1);
-    else collection.push({ symbol, name: name || state.companies.get(symbol)?.name || symbol });
-    persistLists();
-    renderPortfolio();
-    renderWatchlist();
-    if (state.selected?.symbol === symbol) renderResearch();
-  }
-  function renderChips() {
-    const region = $("#company-chips");
-    if (!region) return;
-    if (!state.search.length) { region.replaceChildren(); return; }
-    region.innerHTML = state.search.map((item) => `<button class="company-chip ${state.selected?.symbol === item.symbol ? "active" : ""}" type="button" data-symbol="${esc(item.symbol)}"><b>${esc(item.name)}</b><small>${esc(item.symbol)}</small></button>`).join("");
-  }
-  async function searchCompanies(query) {
-    const region = $("#company-chips");
-    const trimmed = query.trim();
-    const sequence = ++state.searchSequence;
-    const isCurrentSearch = () => sequence === state.searchSequence && ($("#company-search")?.value.trim() ?? trimmed) === trimmed;
-    if (trimmed.length < 2) { state.search = []; renderChips(); return; }
-    if (region) region.innerHTML = '<span class="search-status">Searching official NSE listings…</span>';
-    try {
-      const parseItems = (payload) => (Array.isArray(payload.items) ? payload.items : []).filter((item) => item.symbol).map((item) => ({ symbol: String(item.symbol).toUpperCase(), name: item.name || item.symbol, sector: item.sector || "NSE listed equity" }));
-      let items = parseItems(await request({ view: "search", q: trimmed }));
-      if (!isCurrentSearch()) return;
-      if (!items.length && /\s/.test(trimmed)) {
-        const compact = trimmed.toUpperCase().replace(/[^A-Z0-9&.-]/g, "");
-        if (/^[A-Z0-9&.-]{2,24}$/.test(compact)) items = parseItems(await request({ view: "search", q: compact }));
-      }
-      if (!isCurrentSearch()) return;
-      state.search = items;
-      state.search.forEach((item) => state.companies.set(item.symbol, { ...state.companies.get(item.symbol), ...item, short: item.symbol.slice(0, 5) }));
-      const directSymbol = trimmed.toUpperCase().replace(/\.NS$/, "").replace(/[^A-Z0-9&.-]/g, "");
+        if (list && error?.message) list.setAttribute("aria-label", `Refresh failed. Showing the last successful N…1875 tokens truncated…  const directSymbol = trimmed.toUpperCase().replace(/\.NS$/, "").replace(/[^A-Z0-9&.-]/g, "");
       if (!state.search.length && /^[A-Z0-9&.-]{1,24}$/.test(directSymbol)) {
         const symbol = directSymbol;
         state.search = [{ symbol, name: symbol, sector: "NSE listed equity" }];
@@ -347,7 +260,8 @@
     } catch (error) {
       if (!isCurrentSearch()) return;
       state.search = [];
-      if (region) region.innerHTML = `<span class="search-status">${esc(error.message)}. Check your connection and try again.</span>`;
+      const message = String(error?.message || "The official NSE listings could not be searched.").trim().replace(/[.!?]+$/, "");
+      if (region) region.innerHTML = `<span class="search-status">${esc(message)}. Try again in a moment.</span>`;
     }
   }
   function numberList(value) {
