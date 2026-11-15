@@ -614,3 +614,97 @@ html[data-theme="dark"] .finn-ai-form textarea { background-color: rgba(9, 14, 1
   .data-status { max-width: 54%; white-space: normal; }
   .watchlist-summary-card { width: 100%; }
 }
+
+/* NSE live data views */
+.live-pill { color: var(--ink); }
+.live-pill i { background: #57d48c; box-shadow: 0 0 9px rgba(87,212,140,.75); }
+#refresh-btn[disabled] { opacity: .65; cursor: wait; }
+.market-chart { margin: -17px 0 27px; padding: 20px; }
+.chart-heading,.price-chart-top { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.chart-heading h2,.chart-heading h3 { margin:0; color:var(--ink); font:700 17px Manrope,sans-serif; }
+.chart-unavailable { display:flex; align-items:baseline; gap:10px; min-height:82px; padding:19px 0; color:var(--muted); }
+.chart-unavailable strong { color:var(--ink); font:750 26px Manrope,sans-serif; }
+.chart-unavailable span { font-size:11px; }
+.chart-foot { color:var(--muted); font-size:9px; }
+.chart-foot a,.disclaimer a { color:var(--green); text-underline-offset:3px; }
+.source-status { margin:0 0 10px; color:var(--muted); font-size:10px; line-height:1.5; }
+.source-item p { margin:8px 0; color:var(--muted); font-size:10px; line-height:1.5; }
+.feed-card.live-mover { width:100%; color:var(--ink); font:inherit; text-align:left; }
+.feed-card.live-mover .card-main { display:flex; flex-direction:column; align-items:flex-start; }
+.feed-card.live-mover .feed-title { display:block; }
+.feed-card.live-mover .feed-copy { display:block; }
+.search-status { color:var(--muted); font-size:11px; padding:6px 2px; }
+.company-chip { display:flex; align-items:center; gap:7px; }
+.company-chip small { color:var(--muted); font-size:9px; }
+.research-placeholder,.network-empty-state { display:grid; justify-items:start; gap:8px; padding:25px; }
+.research-placeholder h2,.network-empty-state h2 { margin:0; color:var(--ink); font:700 17px Manrope,sans-serif; }
+.research-placeholder p,.network-empty-state p { max-width:580px; margin:0; color:var(--muted); font-size:11px; line-height:1.6; }
+.network-empty-state { min-height:230px; align-content:center; }
+.network-empty-state .privacy-icon { font-size:30px; }
+.price-chart-wrap { margin-top:11px; }
+.price-chart-top { color:var(--muted); font-size:9px; }
+.price-chart { display:block; width:100%; height:160px; overflow:visible; }
+.price-area { fill:url(#priceGradient); }
+.price-line { fill:none; stroke:var(--glass-chart); stroke-width:3; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke; }
+.price-chart.down .price-line { stroke:var(--red); }
+.chart-foot { display:flex; justify-content:space-between; gap:10px; margin-top:5px; }
+.card-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:9px 14px; }
+.data-status { color:var(--muted); font-size:9px; }
+.portfolio-card-footer { flex-wrap:wrap; }
+.portfolio-card-footer .card-actions { margin-left:auto; }
+.portfolio-card-metrics .up,.portfolio-card-metrics .down { display:block; padding:0; background:transparent; font-size:11px; }
+.portfolio-card-metrics .up { color:var(--green); }
+.portfolio-card-metrics .down { color:var(--red); }
+.empty-state { padding:16px; color:var(--muted); font-size:11px; }
+.theme-toggle { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:36px; border:1px solid var(--line); border-radius:999px; padding:0 11px; background:rgba(255,255,255,.14); color:var(--ink); font-size:10px; font-weight:650; cursor:pointer; }
+.theme-toggle:focus-visible,.nav-item:focus-visible,.quiet-btn:focus-visible,.company-chip:focus-visible,.feed-card:focus-visible { outline:2px solid var(--glass-chart); outline-offset:3px; }
+html[data-theme="dark"] .theme-toggle { background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.16); }
+html[data-theme="dark"] .research-placeholder,html[data-theme="dark"] .network-empty-state { background:rgba(24,30,38,.78); border-color:var(--line); color:var(--ink); }
+html[data-theme="dark"] .company-chip.active { background:rgba(97,214,154,.15); color:#8ce7b5; }
+html[data-theme="dark"] .chart-heading h2,html[data-theme="dark"] .chart-heading h3 { color:var(--ink); }
+html[data-theme="dark"] .analysis-note a { color:var(--glass-chart); }
+
+/* Liquid glass uses the linked SVG refraction technique where browser support exists. */
+.sidebar,.topbar,.market-strip,.search-box {
+  position:relative;
+  isolation:isolate;
+  border-color:rgba(255,255,255,.19);
+  background-image:linear-gradient(145deg,rgba(255,255,255,.085),rgba(255,255,255,.018));
+  -webkit-backdrop-filter:blur(28px) saturate(165%);
+  backdrop-filter:blur(28px) saturate(165%);
+  box-shadow:0 14px 40px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.25);
+}
+.sidebar::before,.topbar::before,.market-strip::before,.search-box::before {
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;
+  background:linear-gradient(135deg,rgba(255,255,255,.17),transparent 34%,rgba(125,194,255,.035) 68%,rgba(255,255,255,.07));
+}
+@supports (backdrop-filter:url(#finn-liquid-glass)) {
+  .sidebar,.topbar,.market-strip,.search-box { -webkit-backdrop-filter:url(#finn-liquid-glass); backdrop-filter:url(#finn-liquid-glass); }
+}
+html[data-theme="light"] .sidebar,html[data-theme="light"] .topbar,html[data-theme="light"] .market-strip,html[data-theme="light"] .search-box {
+  border-color:rgba(255,255,255,.7);
+  background-image:linear-gradient(145deg,rgba(255,255,255,.78),rgba(234,242,237,.51));
+  box-shadow:0 16px 42px rgba(34,58,42,.12),inset 0 1px 0 rgba(255,255,255,.88);
+}
+html[data-theme="dark"] .sidebar,html[data-theme="dark"] .topbar,html[data-theme="dark"] .market-strip,html[data-theme="dark"] .search-box {
+  border-color:rgba(226,236,248,.16);
+  background-image:linear-gradient(145deg,rgba(255,255,255,.085),rgba(11,16,22,.37));
+  box-shadow:0 18px 48px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.16);
+}
+@media (max-width:700px) {
+  .sidebar { bottom:calc(9px + env(safe-area-inset-bottom)); left:10px; right:10px; height:66px; border:1px solid rgba(255,255,255,.2); border-radius:24px; padding:5px 8px; }
+  .nav { gap:3px; }
+  .nav-item { flex:1; min-width:0; height:52px; border-radius:17px; }
+  .nav-label { font-size:9px; }
+  .market-strip { overflow-x:auto; scrollbar-width:none; border-radius:20px; gap:16px; }
+  .market-strip::-webkit-scrollbar { display:none; }
+  .market-strip>div:not(.strip-note) { min-width:max-content; }
+  .market-chart { padding:16px; border-radius:20px; }
+  .chart-unavailable { align-items:flex-start; flex-direction:column; gap:5px; }
+  .price-chart { height:130px; }
+  .portfolio-card-footer .card-actions { justify-content:flex-start; margin:4px 0 0; width:100%; }
+  .theme-toggle { min-height:34px; padding:0 9px; }
+}
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
+.sidebar > *, .topbar > *, .market-strip > *, .search-box > * { position:relative; z-index:1; }
+.sidebar::before,.topbar::before,.market-strip::before,.search-box::before { z-index:0; }
