@@ -267,7 +267,7 @@ async function getOverview() {
             callTool(NSE_EOD_MCP, topMoversTool, { date: sessionDate, direction: "gainers", limit: 5, sessionId, signal, id: 5 }).catch(() => null),
             callTool(NSE_EOD_MCP, topMoversTool, { date: sessionDate, direction: "losers", limit: 5, sessionId, signal, id: 6 }).catch(() => null)
           ]);
-          eodMovers = { date: sessionDate, gainers, losers, source: "https://www.nseindia.in/nse-mcp" };
+          eodMovers = { date: sessionDate, gainers, losers, source: "https://www.nseindia.in/nse-mcp", toolSchema: topMoversTool.inputSchema };
         }
         return { history, bankHistory, eodMovers };
       });
