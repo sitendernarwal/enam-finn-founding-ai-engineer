@@ -96,6 +96,16 @@
     }
   }
 
+  function plainAnswer(value) {
+    return String(value || "")
+      .replace(/\[([^\]]+)\]\(https?:\/\/[^)\s]+\)/g, "$1")
+      .replace(/\*\*(.*?)\*\*/g, "$1")
+      .replace(/__(.*?)__/g, "$1")
+      .replace(/^#{1,6}\s+/gm, "")
+      .replace(/^\s*[-*+]\s+/gm, "• ")
+      .trim();
+  }
+
   document.addEventListener("click", (event) => {
     const suggestion = event.target.closest("[data-finn-question]");
     if (!suggestion) return;
@@ -147,7 +157,7 @@
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "FINN could not complete this request.");
 
-      if (answerText) answerText.textContent = payload.answer || "No answer was returned.";
+      if (answerText) answerText.textContent = plainAnswer(payload.answer) || "No answer was returned.";
       const sources = Array.isArray(payload.sources) ? payload.sources : [];
       const links = sources.map((source) => {
         const href = safeOfficialUrl(source.url);
