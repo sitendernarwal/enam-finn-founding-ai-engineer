@@ -886,6 +886,9 @@ input,select,textarea { color: var(--ink); }
   .content { padding: 23px 15px calc(106px + env(safe-area-inset-bottom)); }
   .page-heading { align-items: flex-start; gap: 10px; margin-bottom: 18px; }
   .page-heading h1 { font-size: 27px; }
+  .market-chart .chart-heading { align-items: flex-start; flex-wrap: wrap; }
+  .market-chart .chart-heading > div { flex: 1 1 100%; min-width: 0; }
+  .market-chart .chart-heading .source-label { align-self: flex-start; max-width: none; }
   .market-strip { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 13px 10px; padding: 15px; border-radius: 19px; }
   .market-strip > div + div:not(.strip-note) { padding-left: 0; border-left: 0; }
   .market-strip .strip-note { grid-column: 1/-1; justify-self: start; text-align: left; }
