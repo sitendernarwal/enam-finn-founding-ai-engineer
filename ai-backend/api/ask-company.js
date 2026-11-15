@@ -1,7 +1,9 @@
 const DEFAULT_ORIGINS = [
   "https://sitendernarwal.github.io",
   "http://localhost:3000",
-  "http://127.0.0.1:5500"
+  "http://localhost:8000",
+  "http://127.0.0.1:5500",
+  "http://127.0.0.1:8000"
 ];
 const WINDOW_MS = 15 * 60 * 1000;
 const REQUESTS_PER_WINDOW = 8;
