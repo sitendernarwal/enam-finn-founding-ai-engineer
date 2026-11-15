@@ -334,8 +334,9 @@ html[data-glass-refraction="supported"] .topbar[data-glass="capsule"] {
   .page-heading h1 { font-size: 28px; }
   .market-strip { border-radius: 21px; }
   .market-chart { border-radius: 21px; }
-  .network-hero-glass { min-height: 0; padding: 22px 19px; }
-  .network-orbit { flex: 0 0 162px; width: 162px; height: 150px; margin: -3px -10px 0 -18px; transform: scale(.73); transform-origin: center right; }
+  .network-hero-glass { display: grid; grid-template-columns: minmax(0,1fr); gap: 0; min-height: 0; padding: 22px 19px; }
+  .network-hero-glass > div:first-child { max-width: none; }
+  .network-hero-glass .network-orbit { flex: none; width: 245px; height: 170px; margin: 8px auto -12px; transform: scale(.74); transform-origin: top center; }
   .network-insights { gap: 7px; margin-bottom: 23px; }
   .network-insight { padding: 12px 11px; border-radius: 15px; }
   .network-insight b { font-size: 17px; }
